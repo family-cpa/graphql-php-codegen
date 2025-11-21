@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * This file is auto-generated. Do not edit manually.
+ */
+
+namespace {{ namespace }};
+
+use GraphQLCodegen\Contracts\OperationInterface;
+
+{{ uses }}
+
+class {{ class }} implements OperationInterface
+{
+    public function __construct(
+{{ constructor }}
+    ) {}
+
+    public function document(): string
+    {
+        return <<<'GQL'
+mutation {{ operation_name }}{{ args_signature }} {
+    {{ field_name }}{{ args_pass }}{{ selection }}
+}
+GQL;
+    }
+
+    public function variables(): array
+    {
+        return array_filter([
+{{ variables }}
+        ], fn($v) => $v !== null);
+    }
+
+    public function returnType(): string
+    {
+        return '{{ return_type }}';
+    }
+
+    public function graphQLReturnType(): string
+    {
+        return '{{ graphql_return_type }}';
+    }
+
+    public function baseNamespace(): string
+    {
+        return '{{ base_namespace }}';
+    }
+
+    public function fieldName(): string
+    {
+        return '{{ field_name }}';
+    }
+}

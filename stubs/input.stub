@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * This file is auto-generated. Do not edit manually.
+ */
+
+namespace {{ namespace }};
+
+{{ uses }}
+
+class {{ class }}
+{
+    public function __construct(
+{{ constructor }}
+    ) {}
+
+    public function toArray(): array
+    {
+        return array_filter([
+{{ to_array }}
+        ], fn($v) => $v !== null);
+    }
+}

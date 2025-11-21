@@ -1,0 +1,15 @@
+<?php
+
+namespace {{ namespace }};
+
+use GraphQLCodegen\GraphQLClient;
+
+class {{ class }} extends GraphQLClient
+{
+    public function __construct(
+        string $endpoint,
+        array $headers = []
+    ) {
+        parent::__construct($endpoint, $headers);
+    }
+}

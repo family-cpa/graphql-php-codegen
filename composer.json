@@ -1,0 +1,31 @@
+{
+  "name": "family-cpa/graphql-codegen",
+  "description": "GraphQL schema-driven PHP 8.3 code generator for Laravel.",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "GraphQLCodegen\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "GraphQLCodegen\\Tests\\": "tests/"
+    }
+  },
+  "bin": [
+    "bin/graphql-codegen"
+  ],
+  "require": {
+    "php": "^8.2 || ^8.3"
+  },
+  "require-dev": {
+    "illuminate/console": "^11.0 || ^12.0",
+    "illuminate/support": "^11.0 || ^12.0",
+    "laravel/pint": "^1.0",
+    "phpunit/phpunit": "^10.0"
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
+}

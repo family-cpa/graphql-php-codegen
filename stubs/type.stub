@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * This file is auto-generated. Do not edit manually.
+ */
+
+namespace {{ namespace }};
+
+{{ uses }}
+
+class {{ class }}
+{
+    public function __construct(
+{{ constructor }}
+    ) {}
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+{{ from_array }}
+        );
+    }
+}

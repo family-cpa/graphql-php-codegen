@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * This file is auto-generated. Do not edit manually.
+ */
+
+namespace {{ namespace }};
+
+enum {{ class }}: string
+{
+{{ cases }}
+}

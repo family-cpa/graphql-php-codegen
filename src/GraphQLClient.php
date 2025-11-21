@@ -1,0 +1,129 @@
+<?php
+
+namespace GraphQLCodegen;
+
+use GraphQLCodegen\Contracts\OperationInterface;
+use GraphQLCodegen\Exceptions\GraphQLException;
+use GraphQLCodegen\Exceptions\HttpException;
+use GraphQLCodegen\Schema\TypeMapper;
+use Illuminate\Support\Facades\Http;
+
+class GraphQLClient
+{
+    protected string $endpoint;
+    protected array $headers;
+    protected TypeMapper $typeMapper;
+
+    public function __construct(string $endpoint, array $headers = [])
+    {
+        $this->endpoint = $endpoint;
+        $this->headers = $headers;
+        $this->typeMapper = new TypeMapper();
+    }
+
+    public function execute(OperationInterface $operation): mixed
+    {
+        $response = Http::withHeaders(array_merge(
+            [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ],
+            $this->headers
+        ))->post($this->endpoint, [
+            'query' => $operation->document(),
+            'variables' => $operation->variables(),
+        ]);
+
+        if (!$response->successful()) {
+            throw new HttpException(
+                $response->status(),
+                $response->body()
+            );
+        }
+
+        $data = $response->json();
+
+        if (isset($data['errors'])) {
+            throw new GraphQLException(
+                $data['errors'],
+                $data['extensions'] ?? null
+            );
+        }
+
+        $rawResult = $data['data'][$operation->fieldName()] ?? null;
+
+        if ($rawResult === null) {
+            return null;
+        }
+
+        return $this->deserialize($rawResult, $operation->graphQLReturnType(), $operation->baseNamespace());
+    }
+
+    protected function deserialize(mixed $data, string $graphQLType, ?string $baseNamespace = null): mixed
+    {
+        if ($data === null) {
+            return null;
+        }
+
+        if ($baseNamespace === null) {
+            return $data;
+        }
+
+        $tm = $this->typeMapper->map($graphQLType);
+        $baseType = $tm['base'];
+
+        if ($this->typeMapper->isScalar($baseType)) {
+            $scalarMap = $this->typeMapper->scalarMap();
+            $phpType = $scalarMap[$baseType] ?? 'mixed';
+
+            return match ($phpType) {
+                'int' => (int) $data,
+                'float' => (float) $data,
+                'bool' => (bool) $data,
+                default => (string) $data,
+            };
+        }
+
+        if (!is_array($data)) {
+            return $data;
+        }
+
+        $className = $this->resolveClassName($baseType, $baseNamespace);
+        if ($className === null || !class_exists($className)) {
+            return $data;
+        }
+
+        if ($tm['isList']) {
+            return array_map(fn($item) => $className::fromArray($item), $data);
+        }
+
+        return $className::fromArray($data);
+    }
+
+    protected function resolveClassName(string $baseType, ?string $baseNamespace): ?string
+    {
+        $scalarMap = $this->typeMapper->scalarMap();
+        if (isset($scalarMap[$baseType])) {
+            return null;
+        }
+
+        if ($baseNamespace === null) {
+            return null;
+        }
+
+        $possibleNamespaces = [
+            $baseNamespace . '\\Types\\',
+            $baseNamespace . '\\Enums\\',
+        ];
+
+        foreach ($possibleNamespaces as $namespace) {
+            $fullName = $namespace . $baseType;
+            if (class_exists($fullName)) {
+                return $fullName;
+            }
+        }
+
+        return null;
+    }
+}
+
