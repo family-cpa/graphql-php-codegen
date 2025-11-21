@@ -1,5 +1,5 @@
 {
-  "name": "family-cpa/graphql-codegen",
+  "name": "family-cpa/graphql-php-codegen",
   "description": "GraphQL schema-driven PHP 8.3 code generator for Laravel.",
   "type": "library",
   "license": "MIT",
