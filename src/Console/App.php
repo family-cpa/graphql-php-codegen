@@ -2,16 +2,16 @@
 
 namespace GraphQLCodegen\Console;
 
+use GraphQLCodegen\Generators\ClientGenerator;
+use GraphQLCodegen\Generators\EnumsGenerator;
+use GraphQLCodegen\Generators\InputsGenerator;
+use GraphQLCodegen\Generators\OperationsGenerator;
+use GraphQLCodegen\Generators\TypesGenerator;
 use GraphQLCodegen\Schema\SchemaParser;
 use GraphQLCodegen\Schema\TypeMapper;
-use GraphQLCodegen\Generators\TypesGenerator;
-use GraphQLCodegen\Generators\InputsGenerator;
-use GraphQLCodegen\Generators\EnumsGenerator;
-use GraphQLCodegen\Generators\OperationsGenerator;
-use GraphQLCodegen\Generators\ClientGenerator;
-use GraphQLCodegen\Support\StubsFinder;
-use GraphQLCodegen\Support\NamespaceResolver;
 use GraphQLCodegen\Support\FileWriter;
+use GraphQLCodegen\Support\NamespaceResolver;
+use GraphQLCodegen\Support\StubsFinder;
 
 class App
 {
@@ -19,11 +19,12 @@ class App
     {
         if (count($argv) < 3 || $argv[1] !== 'generate') {
             fwrite(STDERR, "Usage: graphql-codegen generate <schema.graphql> <output-dir>\n");
+
             return 1;
         }
 
         $schemaPath = $argv[2];
-        $outputDir  = $argv[3] ?? 'GraphQL';
+        $outputDir = $argv[3] ?? 'GraphQL';
 
         $this->generate($schemaPath, $outputDir);
 
@@ -39,8 +40,8 @@ class App
         $baseNamespace = NamespaceResolver::resolveBaseNamespace($outputDir);
 
         // Создаем общие зависимости
-        $typeMapper = new TypeMapper();
-        $fileWriter = new FileWriter();
+        $typeMapper = new TypeMapper;
+        $fileWriter = new FileWriter;
 
         // Генерируем все компоненты
         (new TypesGenerator($fileWriter, $typeMapper))->generate($schema, $outputDir, $stubsDir, $baseNamespace);

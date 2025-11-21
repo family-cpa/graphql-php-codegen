@@ -5,6 +5,7 @@ namespace GraphQLCodegen\Exceptions;
 class HttpException extends \RuntimeException
 {
     private int $statusCode;
+
     private ?string $responseBody;
 
     public function __construct(int $statusCode, ?string $responseBody = null, ?\Throwable $previous = null)
@@ -13,9 +14,9 @@ class HttpException extends \RuntimeException
         if ($responseBody) {
             $message .= ": {$responseBody}";
         }
-        
+
         parent::__construct($message, $statusCode, $previous);
-        
+
         $this->statusCode = $statusCode;
         $this->responseBody = $responseBody;
     }
@@ -30,4 +31,3 @@ class HttpException extends \RuntimeException
         return $this->responseBody;
     }
 }
-

@@ -10,12 +10,12 @@ class ClientGenerator
 
     public function __construct(?FileWriter $files = null)
     {
-        $this->files = $files ?? new FileWriter();
+        $this->files = $files ?? new FileWriter;
     }
 
     public function generate(string $outputDir, string $stubsDir, string $baseNamespace): void
     {
-        $stubPath = $stubsDir . '/client.stub';
+        $stubPath = $stubsDir.'/client.stub';
         $stub = file_get_contents($stubPath);
         if ($stub === false) {
             throw new \RuntimeException("Failed to read stub file: {$stubPath}");
@@ -33,13 +33,12 @@ class ClientGenerator
             $stub
         );
 
-        $path = $targetDir . '/' . $className . '.php';
-        
+        $path = $targetDir.'/'.$className.'.php';
+
         if (file_exists($path)) {
             return;
         }
-        
+
         $this->files->writeIfChanged($path, $code);
     }
 }
-

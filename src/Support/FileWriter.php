@@ -12,7 +12,7 @@ class FileWriter
             return;
         }
 
-        if (!mkdir($dir, 0777, true) && !is_dir($dir)) {
+        if (! mkdir($dir, 0777, true) && ! is_dir($dir)) {
             throw new RuntimeException("Failed to create directory: {$dir}");
         }
     }
@@ -37,21 +37,21 @@ class FileWriter
 
     public function cleanupDirectory(string $dir, array $keepFiles): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 
         $keepFiles = array_map('basename', $keepFiles);
         $keepFiles = array_flip($keepFiles);
 
-        $files = glob($dir . '/*.php');
+        $files = glob($dir.'/*.php');
         if ($files === false) {
             return;
         }
 
         foreach ($files as $file) {
             $basename = basename($file);
-            if (!isset($keepFiles[$basename])) {
+            if (! isset($keepFiles[$basename])) {
                 @unlink($file);
             }
         }

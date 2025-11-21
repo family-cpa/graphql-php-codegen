@@ -9,7 +9,7 @@ class StringHelpers
         $prefix = str_repeat($indent, $level);
         $lines = preg_split('/\R/', $text);
         $lines = array_map(
-            fn($line) => $line !== '' ? $prefix . $line : $line,
+            fn ($line) => $line !== '' ? $prefix.$line : $line,
             $lines
         );
 

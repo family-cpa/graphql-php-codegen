@@ -2,7 +2,7 @@
 
 namespace GraphQLCodegen;
 
-use GraphQLCodegen\Contracts\OperationInterface;
+use GraphQLCodegen\Contracts\Operation;
 use GraphQLCodegen\Exceptions\GraphQLException;
 use GraphQLCodegen\Exceptions\HttpException;
 use GraphQLCodegen\Schema\TypeMapper;
@@ -11,17 +11,19 @@ use Illuminate\Support\Facades\Http;
 class GraphQLClient
 {
     protected string $endpoint;
+
     protected array $headers;
+
     protected TypeMapper $typeMapper;
 
     public function __construct(string $endpoint, array $headers = [])
     {
         $this->endpoint = $endpoint;
         $this->headers = $headers;
-        $this->typeMapper = new TypeMapper();
+        $this->typeMapper = new TypeMapper;
     }
 
-    public function execute(OperationInterface $operation): mixed
+    public function execute(Operation $operation): mixed
     {
         $response = Http::withHeaders(array_merge(
             [
@@ -34,11 +36,8 @@ class GraphQLClient
             'variables' => $operation->variables(),
         ]);
 
-        if (!$response->successful()) {
-            throw new HttpException(
-                $response->status(),
-                $response->body()
-            );
+        if (! $response->successful()) {
+            throw new HttpException($response->status(), $response->body());
         }
 
         $data = $response->json();
@@ -50,13 +49,13 @@ class GraphQLClient
             );
         }
 
-        $rawResult = $data['data'][$operation->fieldName()] ?? null;
+        $rawResult = $data['data'][$operation->operation()] ?? null;
 
         if ($rawResult === null) {
             return null;
         }
 
-        return $this->deserialize($rawResult, $operation->graphQLReturnType(), $operation->baseNamespace());
+        return $this->deserialize($rawResult, $operation->graphqlType(), $operation->namespace());
     }
 
     protected function deserialize(mixed $data, string $graphQLType, ?string $baseNamespace = null): mixed
@@ -69,8 +68,8 @@ class GraphQLClient
             return $data;
         }
 
-        $tm = $this->typeMapper->map($graphQLType);
-        $baseType = $tm['base'];
+        $typeMapping = $this->typeMapper->map($graphQLType);
+        $baseType = $typeMapping['base'];
 
         if ($this->typeMapper->isScalar($baseType)) {
             $scalarMap = $this->typeMapper->scalarMap();
@@ -84,17 +83,17 @@ class GraphQLClient
             };
         }
 
-        if (!is_array($data)) {
+        if (! is_array($data)) {
             return $data;
         }
 
         $className = $this->resolveClassName($baseType, $baseNamespace);
-        if ($className === null || !class_exists($className)) {
+        if ($className === null || ! class_exists($className)) {
             return $data;
         }
 
-        if ($tm['isList']) {
-            return array_map(fn($item) => $className::fromArray($item), $data);
+        if ($typeMapping['isList']) {
+            return array_map(fn ($item) => $className::fromArray($item), $data);
         }
 
         return $className::fromArray($data);
@@ -112,12 +111,12 @@ class GraphQLClient
         }
 
         $possibleNamespaces = [
-            $baseNamespace . '\\Types\\',
-            $baseNamespace . '\\Enums\\',
+            $baseNamespace.'\\Types\\',
+            $baseNamespace.'\\Enums\\',
         ];
 
         foreach ($possibleNamespaces as $namespace) {
-            $fullName = $namespace . $baseType;
+            $fullName = $namespace.$baseType;
             if (class_exists($fullName)) {
                 return $fullName;
             }
@@ -126,4 +125,3 @@ class GraphQLClient
         return null;
     }
 }
-

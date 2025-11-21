@@ -5,11 +5,12 @@ namespace GraphQLCodegen\Schema;
 class SchemaParser
 {
     private string $schema;
+
     private TypeMapper $mapper;
 
     public function __construct(string $schemaPath)
     {
-        if (!is_file($schemaPath)) {
+        if (! is_file($schemaPath)) {
             throw new \RuntimeException("Schema file not found: {$schemaPath}");
         }
 
@@ -19,30 +20,30 @@ class SchemaParser
         }
 
         $this->schema = $content;
-        $this->mapper = new TypeMapper();
+        $this->mapper = new TypeMapper;
 
         $this->preprocess();
     }
 
     private function preprocess(): void
     {
-        $s = $this->schema;
+        $schema = $this->schema;
 
         // Remove block strings """ ... """
-        $s = preg_replace('/"""[\s\S]*?"""/m', '', $s);
+        $schema = preg_replace('/"""[\s\S]*?"""/m', '', $schema);
 
         // Remove directives: @directive(...) and @directive
-        $s = preg_replace('/@\w+\([^)]*\)/m', '', $s);
-        $s = preg_replace('/@\w+/m', '', $s);
+        $schema = preg_replace('/@\w+\([^)]*\)/m', '', $schema);
+        $schema = preg_replace('/@\w+/m', '', $schema);
 
         // Remove comments (# ...)
-        $s = preg_replace('/#.*$/m', '', $s);
+        $schema = preg_replace('/#.*$/m', '', $schema);
 
         // Normalize whitespace to simplify parsers
-        $s = preg_replace('/\s+/', ' ', $s);
+        $schema = preg_replace('/\s+/', ' ', $schema);
 
-        $this->schema = trim($s);
-        
+        $this->schema = trim($schema);
+
         if (empty($this->schema)) {
             throw new \RuntimeException('Schema file is empty or contains no valid GraphQL definitions');
         }
@@ -68,20 +69,20 @@ class SchemaParser
         $mutationFields = $this->parseOperationType('Mutation');
 
         $typeMap = [];
-        foreach ($types as $t) {
-            $typeName = $t['name'] ?? '';
-            if (!empty($typeName)) {
-                $typeMap[$typeName] = $t['fields'] ?? [];
+        foreach ($types as $type) {
+            $typeName = $type['name'] ?? '';
+            if (! empty($typeName)) {
+                $typeMap[$typeName] = $type['fields'] ?? [];
             }
         }
 
         return [
-            'types'    => $types,
-            'inputs'   => $inputs,
-            'enums'    => $enums,
-            'query'    => $queryFields,
+            'types' => $types,
+            'inputs' => $inputs,
+            'enums' => $enums,
+            'query' => $queryFields,
             'mutation' => $mutationFields,
-            'typeMap'  => $typeMap,
+            'typeMap' => $typeMap,
         ];
     }
 
@@ -104,17 +105,17 @@ class SchemaParser
             $body = $definition['body'];
             $fields = [];
 
-            if (preg_match_all('/(\w+)\s*:\s*([!\[\]\w]+)/', $body, $fm, PREG_SET_ORDER)) {
-                foreach ($fm as $f) {
+            if (preg_match_all('/(\w+)\s*:\s*([!\[\]\w]+)/', $body, $fieldMatches, PREG_SET_ORDER)) {
+                foreach ($fieldMatches as $fieldMatch) {
                     $fields[] = [
-                        'name' => $f[1],
-                        'type' => $f[2],
+                        'name' => $fieldMatch[1],
+                        'type' => $fieldMatch[2],
                     ];
                 }
             }
 
             $result[] = [
-                'name'   => $name,
+                'name' => $name,
                 'fields' => $fields,
             ];
         }
@@ -136,17 +137,17 @@ class SchemaParser
             $body = $definition['body'];
             $fields = [];
 
-            if (preg_match_all('/(\w+)\s*:\s*([!\[\]\w]+)/', $body, $fm, PREG_SET_ORDER)) {
-                foreach ($fm as $f) {
+            if (preg_match_all('/(\w+)\s*:\s*([!\[\]\w]+)/', $body, $fieldMatches, PREG_SET_ORDER)) {
+                foreach ($fieldMatches as $fieldMatch) {
                     $fields[] = [
-                        'name' => $f[1],
-                        'type' => $f[2],
+                        'name' => $fieldMatch[1],
+                        'type' => $fieldMatch[2],
                     ];
                 }
             }
 
             $result[] = [
-                'name'   => $name,
+                'name' => $name,
                 'fields' => $fields,
             ];
         }
@@ -168,14 +169,14 @@ class SchemaParser
             $body = $definition['body'];
 
             $values = [];
-            if (preg_match_all('/(\w+)/', $body, $vm)) {
-                foreach ($vm[1] as $v) {
-                    $values[] = $v;
+            if (preg_match_all('/(\w+)/', $body, $valueMatches)) {
+                foreach ($valueMatches[1] as $value) {
+                    $values[] = $value;
                 }
             }
 
             $result[] = [
-                'name'   => $name,
+                'name' => $name,
                 'values' => $values,
             ];
         }
@@ -197,41 +198,41 @@ class SchemaParser
 
         // Парсим поля с аргументами, учитывая многострочные аргументы
         // Паттерн: имя_поля (аргументы) : тип_возврата
-        if (!preg_match_all('/(\w+)\s*(\([^)]*\))?\s*:\s*([!\[\]\w]+)/', $body, $matches, PREG_SET_ORDER)) {
+        if (! preg_match_all('/(\w+)\s*(\([^)]*\))?\s*:\s*([!\[\]\w]+)/', $body, $matches, PREG_SET_ORDER)) {
             return $result;
         }
 
-        foreach ($matches as $f) {
-            $fieldName = $f[1];
-            $argsDef   = $f[2] ?? '';
-            $retType   = $f[3];
+        foreach ($matches as $match) {
+            $fieldName = $match[1];
+            $argsDef = $match[2] ?? '';
+            $returnType = $match[3];
 
             $args = [];
 
             if ($argsDef) {
                 // Убираем скобки
                 $argsDef = trim($argsDef, '()');
-                
+
                 // Нормализуем пробелы и переносы строк
                 $argsDef = preg_replace('/\s+/', ' ', $argsDef);
-                
+
                 // Парсим аргументы по паттерну "имя: тип"
                 // Аргументы могут быть разделены запятыми или просто пробелами
                 // Паттерн: (\w+)\s*:\s*([!\[\]\w]+)
                 if (preg_match_all('/(\w+)\s*:\s*([!\[\]\w]+)/', $argsDef, $argMatches, PREG_SET_ORDER)) {
-                    foreach ($argMatches as $am) {
+                    foreach ($argMatches as $argMatch) {
                         $args[] = [
-                            'name' => $am[1],
-                            'type' => $am[2],
+                            'name' => $argMatch[1],
+                            'type' => $argMatch[2],
                         ];
                     }
                 }
             }
 
             $result[] = [
-                'name'       => $fieldName,
-                'args'       => $args,
-                'returnType' => $retType,
+                'name' => $fieldName,
+                'args' => $args,
+                'returnType' => $returnType,
             ];
         }
 
@@ -249,9 +250,9 @@ class SchemaParser
     private function collectDefinitions(string $keyword): array
     {
         $result = [];
-        $pattern = '/(?:extend\s+)?' . $keyword . '\s+([A-Za-z_][\w]*)[^{]*\{/m';
+        $pattern = '/(?:extend\s+)?'.$keyword.'\s+([A-Za-z_][\w]*)[^{]*\{/m';
 
-        if (!preg_match_all($pattern, $this->schema, $matches, PREG_OFFSET_CAPTURE)) {
+        if (! preg_match_all($pattern, $this->schema, $matches, PREG_OFFSET_CAPTURE)) {
             return $result;
         }
 
@@ -278,8 +279,8 @@ class SchemaParser
 
     private function findDefinitionBody(string $keyword, string $name): ?string
     {
-        $pattern = '/(?:extend\s+)?' . $keyword . '\s+' . preg_quote($name, '/') . '[^{]*\{/m';
-        if (!preg_match($pattern, $this->schema, $match, PREG_OFFSET_CAPTURE)) {
+        $pattern = '/(?:extend\s+)?'.$keyword.'\s+'.preg_quote($name, '/').'[^{]*\{/m';
+        if (! preg_match($pattern, $this->schema, $match, PREG_OFFSET_CAPTURE)) {
             return null;
         }
 
@@ -297,21 +298,22 @@ class SchemaParser
         $depth = 0;
         $start = null;
 
-        for ($i = $bracePos; $i < $len; $i++) {
-            $ch = $this->schema[$i];
+        for ($index = $bracePos; $index < $len; $index++) {
+            $char = $this->schema[$index];
 
-            if ($ch === '{') {
+            if ($char === '{') {
                 $depth++;
                 if ($depth === 1) {
-                    $start = $i + 1;
+                    $start = $index + 1;
                 }
+
                 continue;
             }
 
-            if ($ch === '}') {
+            if ($char === '}') {
                 $depth--;
                 if ($depth === 0) {
-                    return trim(substr($this->schema, $start, $i - $start));
+                    return trim(substr($this->schema, $start, $index - $start));
                 }
             }
         }

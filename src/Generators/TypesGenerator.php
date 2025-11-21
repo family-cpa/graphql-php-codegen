@@ -8,18 +8,19 @@ use GraphQLCodegen\Support\FileWriter;
 class TypesGenerator
 {
     private FileWriter $files;
+
     private TypeMapper $mapper;
 
     public function __construct(?FileWriter $files = null, ?TypeMapper $mapper = null)
     {
-        $this->files  = $files ?? new FileWriter();
-        $this->mapper = $mapper ?? new TypeMapper();
+        $this->files = $files ?? new FileWriter;
+        $this->mapper = $mapper ?? new TypeMapper;
     }
 
     public function generate(array $schema, string $outputDir, string $stubsDir, string $baseNamespace): void
     {
         $types = $schema['types'] ?? [];
-        if (!$types) {
+        if (! $types) {
             return;
         }
 
@@ -27,13 +28,13 @@ class TypesGenerator
         $typeNames = $this->indexByName($types);
         $inputNames = $this->indexByName($schema['inputs'] ?? []);
 
-        $stubPath = $stubsDir . '/type.stub';
+        $stubPath = $stubsDir.'/type.stub';
         $stub = file_get_contents($stubPath);
         if ($stub === false) {
             throw new \RuntimeException("Failed to read stub file: {$stubPath}");
         }
-        $namespace = $baseNamespace . '\\Types';
-        $targetDir = rtrim($outputDir, '/\\') . '/Types';
+        $namespace = $baseNamespace.'\\Types';
+        $targetDir = rtrim($outputDir, '/\\').'/Types';
 
         $this->files->ensureDir($targetDir);
 
@@ -55,38 +56,38 @@ class TypesGenerator
             foreach ($fields as $field) {
                 $fieldName = $field['name'] ?? '';
                 $fieldType = $field['type'] ?? '';
-                
+
                 if (empty($fieldName) || empty($fieldType)) {
                     continue;
                 }
 
-                $tm = $this->mapper->map($fieldType);
+                $typeMapping = $this->mapper->map($fieldType);
 
-                $hint = $tm['php'] !== 'mixed'
-                    ? ($tm['nullable'] ? '?' . $tm['php'] : $tm['php'])
+                $hint = $typeMapping['php'] !== 'mixed'
+                    ? ($typeMapping['nullable'] ? '?'.$typeMapping['php'] : $typeMapping['php'])
                     : '';
 
-                $default = $tm['nullable'] ? ' = null' : '';
-                $hintPart = $hint !== '' ? $hint . ' ' : '';
+                $default = $typeMapping['nullable'] ? ' = null' : '';
+                $hintPart = $hint !== '' ? $hint.' ' : '';
 
                 $constructorLines[] = "public {$hintPart}\${$fieldName}{$default},";
 
-                $fromArrayValue = $this->generateFromArrayValue($fieldName, $tm, $scalarMap, $enumNames, $typeNames, $baseNamespace);
+                $fromArrayValue = $this->generateFromArrayValue($fieldName, $typeMapping, $scalarMap, $enumNames, $typeNames, $baseNamespace);
                 $fromArrayLines[] = $fromArrayValue;
 
-                $import = $this->resolveImport($tm['base'], $className, $typeNames, $enumNames, $inputNames, $baseNamespace);
+                $import = $this->resolveImport($typeMapping['base'], $className, $typeNames, $enumNames, $inputNames, $baseNamespace);
                 if ($import) {
                     $imports[$import] = true;
                 }
             }
 
             $constructor = implode("\n", array_map(
-                fn($line) => '        ' . $line,
+                fn ($line) => '        '.$line,
                 $constructorLines
             ));
 
             $fromArray = implode(",\n", array_map(
-                fn($line) => '            ' . $line,
+                fn ($line) => '            '.$line,
                 $fromArrayLines
             ));
 
@@ -94,11 +95,11 @@ class TypesGenerator
 
             $code = str_replace(
                 ['{{ namespace }}', '{{ uses }}', '{{ class }}', '{{ constructor }}', '{{ from_array }}'],
-                [$namespace, $uses, $className, rtrim($constructor, ","), $fromArray],
+                [$namespace, $uses, $className, rtrim($constructor, ','), $fromArray],
                 $stub
             );
 
-            $path = $targetDir . '/' . $className . '.php';
+            $path = $targetDir.'/'.$className.'.php';
             $this->files->writeIfChanged($path, $code);
             $generatedFiles[] = $path;
         }
@@ -107,7 +108,7 @@ class TypesGenerator
     }
 
     /**
-     * @param array<int,array{name:string}> $items
+     * @param  array<int,array{name:string}>  $items
      * @return array<string,bool>
      */
     private function indexByName(array $items): array
@@ -121,9 +122,9 @@ class TypesGenerator
     }
 
     /**
-     * @param array<string,bool> $typeNames
-     * @param array<string,bool> $enumNames
-     * @param array<string,bool> $inputNames
+     * @param  array<string,bool>  $typeNames
+     * @param  array<string,bool>  $enumNames
+     * @param  array<string,bool>  $inputNames
      */
     private function resolveImport(string $base, string $className, array $typeNames, array $enumNames, array $inputNames, string $baseNamespace): ?string
     {
@@ -152,15 +153,15 @@ class TypesGenerator
 
     private function generateFromArrayValue(
         string $fieldName,
-        array $tm,
+        array $typeMapping,
         array $scalarMap,
         array $enumNames,
         array $typeNames,
         string $baseNamespace
     ): string {
-        $base = $tm['base'];
-        $isList = $tm['isList'];
-        $nullable = $tm['nullable'];
+        $base = $typeMapping['base'];
+        $isList = $typeMapping['isList'];
+        $nullable = $typeMapping['nullable'];
 
         $valueExpr = "\$data['{$fieldName}'] ?? null";
         $valueExprWrapped = "({$valueExpr})";
@@ -174,17 +175,20 @@ class TypesGenerator
         if ($isList) {
             if (isset($scalarMap[$base])) {
                 $phpType = $scalarMap[$base];
-                return "{$nullCheck}array_map(fn(\$v) => ({$phpType}) \$v, {$valueExprWrapped} ?? [])";
+
+                return "{$nullCheck}array_map(fn(\$value) => ({$phpType}) \$value, {$valueExprWrapped} ?? [])";
             }
 
             if (isset($enumNames[$base])) {
                 $enumClass = "{$baseNamespace}\\Enums\\{$base}";
-                return "{$nullCheck}array_map(fn(\$v) => {$enumClass}::tryFrom(\$v) ?? \$v, {$valueExprWrapped} ?? [])";
+
+                return "{$nullCheck}array_map(fn(\$value) => {$enumClass}::tryFrom(\$value) ?? \$value, {$valueExprWrapped} ?? [])";
             }
 
             if (isset($typeNames[$base])) {
                 $typeClass = "{$baseNamespace}\\Types\\{$base}";
-                return "{$nullCheck}array_map(fn(\$v) => {$typeClass}::fromArray(\$v), {$valueExprWrapped} ?? [])";
+
+                return "{$nullCheck}array_map(fn(\$value) => {$typeClass}::fromArray(\$value), {$valueExprWrapped} ?? [])";
             }
 
             return "{$nullCheck}{$valueExprWrapped} ?? []";
@@ -192,16 +196,19 @@ class TypesGenerator
 
         if (isset($scalarMap[$base])) {
             $phpType = $scalarMap[$base];
+
             return "{$nullCheck}({$phpType}) {$valueExprWrapped}";
         }
 
         if (isset($enumNames[$base])) {
             $enumClass = "{$baseNamespace}\\Enums\\{$base}";
+
             return "{$nullCheck}{$enumClass}::tryFrom({$valueExprWrapped}) ?? {$valueExprWrapped}";
         }
 
         if (isset($typeNames[$base])) {
             $typeClass = "{$baseNamespace}\\Types\\{$base}";
+
             return "{$nullCheck}{$typeClass}::fromArray({$valueExprWrapped})";
         }
 

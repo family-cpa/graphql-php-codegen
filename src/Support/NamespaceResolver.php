@@ -15,20 +15,21 @@ class NamespaceResolver
         // Начинаем с текущей директории или директории скрипта
         $startDir = getcwd() ?: __DIR__;
         $dir = realpath($startDir);
-        
-        if (!$dir) {
+
+        if (! $dir) {
             return null;
         }
 
         // Ищем корень проекта по индикаторам
         while ($dir !== dirname($dir)) {
             // Проверяем наличие composer.json или vendor/
-            if (file_exists($dir . DIRECTORY_SEPARATOR . 'composer.json') || 
-                is_dir($dir . DIRECTORY_SEPARATOR . 'vendor')) {
+            if (file_exists($dir.DIRECTORY_SEPARATOR.'composer.json') ||
+                is_dir($dir.DIRECTORY_SEPARATOR.'vendor')) {
                 self::$projectRoot = $dir;
+
                 return $dir;
             }
-            
+
             $dir = dirname($dir);
         }
 
@@ -41,10 +42,11 @@ class NamespaceResolver
                     $vendorDir = dirname(dirname($packagePath));
                     if (is_dir($vendorDir) && basename($vendorDir) === 'vendor') {
                         self::$projectRoot = dirname($vendorDir);
+
                         return self::$projectRoot;
                     }
                 }
-            } catch (\Throwable $e) {
+            } catch (\Throwable $exception) {
                 // Игнорируем ошибки
             }
         }
@@ -56,19 +58,19 @@ class NamespaceResolver
     {
         // Нормализуем путь
         $normalized = trim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path), DIRECTORY_SEPARATOR);
-        
+
         // Преобразуем в абсолютный путь если нужно
-        if (!self::isAbsolutePath($normalized)) {
+        if (! self::isAbsolutePath($normalized)) {
             $normalized = realpath($normalized) ?: $normalized;
         }
 
         // Находим корень проекта
         $projectRoot = self::findProjectRoot();
-        
+
         if ($projectRoot) {
             $projectRoot = realpath($projectRoot);
             $normalized = realpath($normalized) ?: $normalized;
-            
+
             // Если путь находится внутри проекта, обрезаем до корня проекта
             if ($projectRoot && str_starts_with($normalized, $projectRoot)) {
                 $relativePath = substr($normalized, strlen($projectRoot));
@@ -84,12 +86,13 @@ class NamespaceResolver
         }
 
         // Разбиваем на части
-        $parts = array_filter(explode(DIRECTORY_SEPARATOR, $normalized), fn($p) => $p !== '');
+        $parts = array_filter(explode(DIRECTORY_SEPARATOR, $normalized), fn ($part) => $part !== '');
 
         // Преобразуем каждую часть в PascalCase для namespace
         $namespaceParts = array_map(function ($part) {
             // Убираем расширения файлов если есть
             $part = pathinfo($part, PATHINFO_FILENAME);
+
             // Преобразуем в PascalCase
             return str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $part)));
         }, $parts);
@@ -103,12 +106,12 @@ class NamespaceResolver
         if (preg_match('/^[A-Z]:[\\/]/i', $path) || str_starts_with($path, '\\\\')) {
             return true;
         }
-        
+
         // Unix: /path
         if (str_starts_with($path, '/')) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -119,7 +122,7 @@ class NamespaceResolver
         }
 
         $namespace = self::pathToNamespace($outputDir);
-        
+
         // Если namespace пустой (например, путь был только из разделителей), возвращаем дефолтный
         if (empty($namespace)) {
             return 'GraphQL';
@@ -128,4 +131,3 @@ class NamespaceResolver
         return $namespace;
     }
 }
-

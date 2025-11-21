@@ -6,11 +6,11 @@
 
 namespace {{ namespace }};
 
-use GraphQLCodegen\Contracts\OperationInterface;
+use GraphQLCodegen\Contracts\Operation;
 
 {{ uses }}
 
-class {{ class }} implements OperationInterface
+class {{ class }} implements Operation
 {
     public function __construct(
 {{ constructor }}
@@ -32,22 +32,22 @@ GQL;
         ], fn($v) => $v !== null);
     }
 
-    public function returnType(): string
+    public function type(): string
     {
-        return '{{ return_type }}';
+        return {{ type_class }};
     }
 
-    public function graphQLReturnType(): string
+    public function graphqlType(): string
     {
         return '{{ graphql_return_type }}';
     }
 
-    public function baseNamespace(): string
+    public function namespace(): string
     {
         return '{{ base_namespace }}';
     }
 
-    public function fieldName(): string
+    public function operation(): string
     {
         return '{{ field_name }}';
     }

@@ -5,16 +5,16 @@ namespace GraphQLCodegen\Schema;
 class TypeMapper
 {
     private array $scalarMap = [
-        'UUID'    => 'string',
-        'ID'      => 'string',
-        'String'  => 'string',
-        'Int'     => 'int',
-        'Float'   => 'float',
+        'UUID' => 'string',
+        'ID' => 'string',
+        'String' => 'string',
+        'Int' => 'int',
+        'Float' => 'float',
         'Boolean' => 'bool',
-        'Time'    => 'string',
-        'Any'     => 'mixed',
-        'Upload'  => 'string',
-        'Cursor'  => 'string',
+        'Time' => 'string',
+        'Any' => 'mixed',
+        'Upload' => 'string',
+        'Cursor' => 'string',
     ];
 
     private array $scalars;
@@ -34,7 +34,7 @@ class TypeMapper
      */
     public function map(string $raw): array
     {
-        $nullable = !str_ends_with($raw, '!');
+        $nullable = ! str_ends_with($raw, '!');
         $clean = rtrim($raw, '!');
         $isList = false;
 
@@ -54,10 +54,10 @@ class TypeMapper
         }
 
         return [
-            'php'      => $phpType,
+            'php' => $phpType,
             'nullable' => $nullable,
-            'isList'   => $isList,
-            'base'     => $base,
+            'isList' => $isList,
+            'base' => $base,
         ];
     }
 

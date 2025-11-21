@@ -10,19 +10,19 @@ class EnumsGenerator
 
     public function __construct(?FileWriter $files = null)
     {
-        $this->files = $files ?? new FileWriter();
+        $this->files = $files ?? new FileWriter;
     }
 
     public function generate(array $schema, string $outputDir, string $stubsDir, string $baseNamespace): void
     {
         $enums = $schema['enums'] ?? [];
-        $stubPath = $stubsDir . '/enum.stub';
+        $stubPath = $stubsDir.'/enum.stub';
         $stub = file_get_contents($stubPath);
         if ($stub === false) {
             throw new \RuntimeException("Failed to read stub file: {$stubPath}");
         }
-        $namespace = $baseNamespace . '\\Enums';
-        $targetDir = rtrim($outputDir, '/\\') . '/Enums';
+        $namespace = $baseNamespace.'\\Enums';
+        $targetDir = rtrim($outputDir, '/\\').'/Enums';
 
         $this->files->ensureDir($targetDir);
 
@@ -42,11 +42,11 @@ class EnumsGenerator
             }
 
             $casesLines = [];
-            foreach ($values as $v) {
-                if (empty($v)) {
+            foreach ($values as $value) {
+                if (empty($value)) {
                     continue;
                 }
-                $casesLines[] = "case {$v} = '{$v}';";
+                $casesLines[] = "case {$value} = '{$value}';";
             }
 
             if (empty($casesLines)) {
@@ -54,7 +54,7 @@ class EnumsGenerator
             }
 
             $cases = implode("\n", array_map(
-                fn($line) => '    ' . $line,
+                fn ($line) => '    '.$line,
                 $casesLines
             ));
 
@@ -64,7 +64,7 @@ class EnumsGenerator
                 $stub
             );
 
-            $path = $targetDir . '/' . $className . '.php';
+            $path = $targetDir.'/'.$className.'.php';
             $this->files->writeIfChanged($path, $code);
             $generatedFiles[] = $path;
         }

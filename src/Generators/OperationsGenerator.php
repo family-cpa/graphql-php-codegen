@@ -8,54 +8,55 @@ use GraphQLCodegen\Support\FileWriter;
 class OperationsGenerator
 {
     private FileWriter $files;
+
     private TypeMapper $mapper;
 
     public function __construct(?FileWriter $files = null, ?TypeMapper $mapper = null)
     {
-        $this->files  = $files ?? new FileWriter();
-        $this->mapper = $mapper ?? new TypeMapper();
+        $this->files = $files ?? new FileWriter;
+        $this->mapper = $mapper ?? new TypeMapper;
     }
 
     public function generate(array $schema, string $outputDir, string $stubsDir, string $baseNamespace): void
     {
-        $queryFields    = $schema['query'] ?? [];
+        $queryFields = $schema['query'] ?? [];
         $mutationFields = $schema['mutation'] ?? [];
-        $typeMap        = $schema['typeMap'] ?? [];
-        $types          = $schema['types'] ?? [];
-        $enums          = $schema['enums'] ?? [];
-        $inputs         = $schema['inputs'] ?? [];
-        $scalarMap      = $this->mapper->scalarMap();
+        $typeMap = $schema['typeMap'] ?? [];
+        $types = $schema['types'] ?? [];
+        $enums = $schema['enums'] ?? [];
+        $inputs = $schema['inputs'] ?? [];
+        $scalarMap = $this->mapper->scalarMap();
 
         // Индексы для быстрого определения типа
         $typeNames = [];
-        foreach ($types as $t) {
-            $typeNames[$t['name']] = 'type';
+        foreach ($types as $type) {
+            $typeNames[$type['name']] = 'type';
         }
-        foreach ($enums as $e) {
-            $typeNames[$e['name']] = 'enum';
+        foreach ($enums as $enum) {
+            $typeNames[$enum['name']] = 'enum';
         }
-        foreach ($inputs as $i) {
-            $typeNames[$i['name']] = 'input';
+        foreach ($inputs as $input) {
+            $typeNames[$input['name']] = 'input';
         }
 
-        $queryStubPath = $stubsDir . '/query.stub';
-        $mutationStubPath = $stubsDir . '/mutation.stub';
-        
+        $queryStubPath = $stubsDir.'/query.stub';
+        $mutationStubPath = $stubsDir.'/mutation.stub';
+
         $queryStub = file_get_contents($queryStubPath);
         if ($queryStub === false) {
             throw new \RuntimeException("Failed to read stub file: {$queryStubPath}");
         }
-        
+
         $mutationStub = file_get_contents($mutationStubPath);
         if ($mutationStub === false) {
             throw new \RuntimeException("Failed to read stub file: {$mutationStubPath}");
         }
 
-        $queryNamespace    = $baseNamespace . '\\Operations\\Query';
-        $mutationNamespace = $baseNamespace . '\\Operations\\Mutation';
+        $queryNamespace = $baseNamespace.'\\Operations\\Query';
+        $mutationNamespace = $baseNamespace.'\\Operations\\Mutation';
 
-        $queryDir    = rtrim($outputDir, '/\\') . '/Operations/Query';
-        $mutationDir = rtrim($outputDir, '/\\') . '/Operations/Mutation';
+        $queryDir = rtrim($outputDir, '/\\').'/Operations/Query';
+        $mutationDir = rtrim($outputDir, '/\\').'/Operations/Mutation';
 
         $this->files->ensureDir($queryDir);
         $this->files->ensureDir($mutationDir);
@@ -118,17 +119,17 @@ class OperationsGenerator
         }
 
         $args = $field['args'] ?? [];
-        $ret  = $field['returnType'] ?? '';
+        $returnType = $field['returnType'] ?? '';
 
-        if (empty($ret)) {
+        if (empty($returnType)) {
             return null;
         }
 
-        $tm = $this->mapper->map($ret);
+        $typeMapping = $this->mapper->map($returnType);
 
         // Имя класса операции: <FieldName>Query/Mutation
         $suffix = $kind === 'query' ? 'Query' : 'Mutation';
-        $className = ucfirst($name) . $suffix;
+        $className = ucfirst($name).$suffix;
 
         // constructor
         $ctorLines = [];
@@ -136,18 +137,18 @@ class OperationsGenerator
         foreach ($args as $arg) {
             $argName = $arg['name'] ?? '';
             $argType = $arg['type'] ?? '';
-            
+
             if (empty($argName) || empty($argType)) {
                 continue;
             }
 
-            $argTm = $this->mapper->map($argType);
+            $argTypeMapping = $this->mapper->map($argType);
 
-            $hint = $argTm['php'] !== 'mixed'
-                ? ($argTm['nullable'] ? '?' . $argTm['php'] : $argTm['php'])
+            $hint = $argTypeMapping['php'] !== 'mixed'
+                ? ($argTypeMapping['nullable'] ? '?'.$argTypeMapping['php'] : $argTypeMapping['php'])
                 : '';
 
-            $default = $argTm['nullable'] ? ' = null' : '';
+            $default = $argTypeMapping['nullable'] ? ' = null' : '';
 
             $ctorLines[] = "public {$hint} \${$argName}{$default},";
 
@@ -157,7 +158,7 @@ class OperationsGenerator
         $constructor = '';
         if ($ctorLines) {
             $constructor = implode("\n", array_map(
-                fn($line) => '        ' . $line,
+                fn ($line) => '        '.$line,
                 $ctorLines
             ));
         }
@@ -165,7 +166,7 @@ class OperationsGenerator
         $variables = '';
         if ($varsLines) {
             $variables = implode("\n", array_map(
-                fn($line) => '            ' . $line,
+                fn ($line) => '            '.$line,
                 $varsLines
             ));
         }
@@ -177,12 +178,12 @@ class OperationsGenerator
             foreach ($args as $arg) {
                 $argName = $arg['name'] ?? '';
                 $argType = $arg['type'] ?? '';
-                if (!empty($argName) && !empty($argType)) {
-                    $sigParts[] = '$' . $argName . ': ' . $argType;
+                if (! empty($argName) && ! empty($argType)) {
+                    $sigParts[] = '$'.$argName.': '.$argType;
                 }
             }
             if ($sigParts) {
-                $argsSignature = '(' . implode(', ', $sigParts) . ')';
+                $argsSignature = '('.implode(', ', $sigParts).')';
             }
         }
 
@@ -192,20 +193,20 @@ class OperationsGenerator
             $passParts = [];
             foreach ($args as $arg) {
                 $argName = $arg['name'] ?? '';
-                if (!empty($argName)) {
-                    $passParts[] = $argName . ': $' . $argName;
+                if (! empty($argName)) {
+                    $passParts[] = $argName.': $'.$argName;
                 }
             }
             if ($passParts) {
-                $argsPass = '(' . implode(', ', $passParts) . ')';
+                $argsPass = '('.implode(', ', $passParts).')';
             }
         }
 
         // selection set — рекурсивная генерация всех полей с вложенностью
         $selection = '';
-        $base = $tm['base'];
-        
-        if (!isset($scalarMap[$base])) {
+        $base = $typeMapping['base'];
+
+        if (! isset($scalarMap[$base])) {
             $selectionSet = $this->buildSelectionSet($base, $typeMap, $typeNames, $scalarMap, 1);
             if ($selectionSet) {
                 $selection = " {\n{$selectionSet}\n    }";
@@ -217,9 +218,9 @@ class OperationsGenerator
 
         // Собираем импорты для возвращаемого типа и аргументов
         $imports = [];
-        
+
         // Импорт для возвращаемого типа
-        if (!isset($scalarMap[$base]) && isset($typeNames[$base])) {
+        if (! isset($scalarMap[$base]) && isset($typeNames[$base])) {
             $typeKind = $typeNames[$base];
             if ($typeKind === 'enum') {
                 $imports[] = "use {$baseNamespace}\\Enums\\{$base};";
@@ -227,27 +228,27 @@ class OperationsGenerator
                 $imports[] = "use {$baseNamespace}\\Types\\{$base};";
             }
         }
-        
+
         // Импорты для типов аргументов
         foreach ($args as $arg) {
             $argType = $arg['type'] ?? '';
             if (empty($argType)) {
                 continue;
             }
-            
-            $argTm = $this->mapper->map($argType);
-            $argBase = $argTm['base'];
-            
+
+            $argTypeMapping = $this->mapper->map($argType);
+            $argBase = $argTypeMapping['base'];
+
             // Пропускаем скалярные типы
             if (isset($scalarMap[$argBase])) {
                 continue;
             }
-            
+
             // Добавляем импорт если это известный тип
             if (isset($typeNames[$argBase])) {
                 $typeKind = $typeNames[$argBase];
                 $import = '';
-                
+
                 if ($typeKind === 'enum') {
                     $import = "use {$baseNamespace}\\Enums\\{$argBase};";
                 } elseif ($typeKind === 'type') {
@@ -255,28 +256,35 @@ class OperationsGenerator
                 } elseif ($typeKind === 'input') {
                     $import = "use {$baseNamespace}\\Inputs\\{$argBase};";
                 }
-                
-                if ($import && !in_array($import, $imports, true)) {
+
+                if ($import && ! in_array($import, $imports, true)) {
                     $imports[] = $import;
                 }
             }
         }
-        
+
         $uses = implode("\n", $imports);
 
-        // Определяем возвращаемый тип для метода returnType()
-        $returnType = $tm['base'];
-        if ($tm['isList']) {
-            $returnType = 'array';
-        } elseif (isset($scalarMap[$returnType])) {
-            $returnType = $scalarMap[$returnType];
-        } elseif (isset($typeNames[$returnType])) {
-            $typeKind = $typeNames[$returnType];
+        // Определяем возвращаемый тип для метода type()
+        $typeClass = '';
+        if ($typeMapping['isList']) {
+            $typeClass = "'array'";
+        } elseif (isset($scalarMap[$typeMapping['base']])) {
+            $phpType = $scalarMap[$typeMapping['base']];
+            $typeClass = "'{$phpType}'";
+        } elseif (isset($typeNames[$typeMapping['base']])) {
+            $typeKind = $typeNames[$typeMapping['base']];
             if ($typeKind === 'enum') {
-                $returnType = $baseNamespace . '\\Enums\\' . $returnType;
+                $fullType = $baseNamespace.'\\Enums\\'.$typeMapping['base'];
+                $typeClass = "{$fullType}::class";
             } elseif ($typeKind === 'type') {
-                $returnType = $baseNamespace . '\\Types\\' . $returnType;
+                $fullType = $baseNamespace.'\\Types\\'.$typeMapping['base'];
+                $typeClass = "{$fullType}::class";
             }
+        }
+
+        if (empty($typeClass)) {
+            $typeClass = "'mixed'";
         }
 
         $code = str_replace(
@@ -291,7 +299,7 @@ class OperationsGenerator
                 '{{ args_pass }}',
                 '{{ selection }}',
                 '{{ variables }}',
-                '{{ return_type }}',
+                '{{ type_class }}',
                 '{{ graphql_return_type }}',
                 '{{ base_namespace }}',
             ],
@@ -299,23 +307,23 @@ class OperationsGenerator
                 $namespace,
                 $uses,
                 $className,
-                rtrim($constructor, ","),
+                rtrim($constructor, ','),
                 ucfirst($name),
                 $argsSignature,
                 $name,
                 $argsPass,
                 $selection,
-                rtrim($variables, ","),
+                rtrim($variables, ','),
+                $typeClass,
                 $returnType,
-                $ret,
                 $baseNamespace,
             ],
             $stub
         );
 
-        $path = $targetDir . '/' . $className . '.php';
+        $path = $targetDir.'/'.$className.'.php';
         $this->files->writeIfChanged($path, $code);
-        
+
         return $path;
     }
 
@@ -344,7 +352,7 @@ class OperationsGenerator
         }
 
         // Если это не объект - возвращаем пустую строку
-        if (!isset($typeMap[$typeName])) {
+        if (! isset($typeMap[$typeName])) {
             return '';
         }
 
@@ -359,31 +367,31 @@ class OperationsGenerator
         foreach ($fields as $field) {
             $fieldName = $field['name'] ?? '';
             $fieldType = $field['type'] ?? '';
-            
+
             if (empty($fieldName) || empty($fieldType)) {
                 continue;
             }
-            
-            $fieldTm = $this->mapper->map($fieldType);
-            $fieldBase = $fieldTm['base'];
+
+            $fieldTypeMapping = $this->mapper->map($fieldType);
+            $fieldBase = $fieldTypeMapping['base'];
 
             // Если это скаляр или enum - просто имя поля
             if (isset($scalarMap[$fieldBase]) || (isset($typeNames[$fieldBase]) && $typeNames[$fieldBase] === 'enum')) {
-                $lines[] = $indent . $fieldName;
-            } 
+                $lines[] = $indent.$fieldName;
+            }
             // Если это объект - рекурсивно генерируем вложенные поля
             elseif (isset($typeMap[$fieldBase])) {
                 $nestedSelection = $this->buildSelectionSet($fieldBase, $typeMap, $typeNames, $scalarMap, $depth + 1, $visited);
                 if ($nestedSelection) {
-                    $lines[] = $indent . $fieldName . " {\n" . $nestedSelection . "\n" . $indent . "}";
+                    $lines[] = $indent.$fieldName." {\n".$nestedSelection."\n".$indent.'}';
                 } else {
                     // Если вложенных полей нет, но это объект - все равно добавляем поле с пустыми скобками
-                    $lines[] = $indent . $fieldName . " {}";
+                    $lines[] = $indent.$fieldName.' {}';
                 }
             }
             // Неизвестный тип - просто имя поля
             else {
-                $lines[] = $indent . $fieldName;
+                $lines[] = $indent.$fieldName;
             }
         }
 

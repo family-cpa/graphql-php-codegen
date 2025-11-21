@@ -8,12 +8,13 @@ use GraphQLCodegen\Support\FileWriter;
 class InputsGenerator
 {
     private FileWriter $files;
+
     private TypeMapper $mapper;
 
     public function __construct(?FileWriter $files = null, ?TypeMapper $mapper = null)
     {
-        $this->files  = $files ?? new FileWriter();
-        $this->mapper = $mapper ?? new TypeMapper();
+        $this->files = $files ?? new FileWriter;
+        $this->mapper = $mapper ?? new TypeMapper;
     }
 
     public function generate(array $schema, string $outputDir, string $stubsDir, string $baseNamespace): void
@@ -25,23 +26,23 @@ class InputsGenerator
 
         // Индексы для определения типа
         $typeIndex = [];
-        foreach ($types as $t) {
-            $typeIndex[$t['name']] = 'type';
+        foreach ($types as $type) {
+            $typeIndex[$type['name']] = 'type';
         }
-        foreach ($enums as $e) {
-            $typeIndex[$e['name']] = 'enum';
+        foreach ($enums as $enum) {
+            $typeIndex[$enum['name']] = 'enum';
         }
-        foreach ($inputs as $i) {
-            $typeIndex[$i['name']] = 'input';
+        foreach ($inputs as $input) {
+            $typeIndex[$input['name']] = 'input';
         }
 
-        $stubPath = $stubsDir . '/input.stub';
+        $stubPath = $stubsDir.'/input.stub';
         $stub = file_get_contents($stubPath);
         if ($stub === false) {
             throw new \RuntimeException("Failed to read stub file: {$stubPath}");
         }
-        $namespace = $baseNamespace . '\\Inputs';
-        $targetDir = rtrim($outputDir, '/\\') . '/Inputs';
+        $namespace = $baseNamespace.'\\Inputs';
+        $targetDir = rtrim($outputDir, '/\\').'/Inputs';
 
         $this->files->ensureDir($targetDir);
 
@@ -62,36 +63,36 @@ class InputsGenerator
             foreach ($fields as $field) {
                 $fieldName = $field['name'] ?? '';
                 $fieldType = $field['type'] ?? '';
-                
+
                 if (empty($fieldName) || empty($fieldType)) {
                     continue;
                 }
 
-                $tm = $this->mapper->map($fieldType);
+                $typeMapping = $this->mapper->map($fieldType);
 
-                $hint = $tm['php'] !== 'mixed'
-                    ? ($tm['nullable'] ? '?' . $tm['php'] : $tm['php'])
+                $hint = $typeMapping['php'] !== 'mixed'
+                    ? ($typeMapping['nullable'] ? '?'.$typeMapping['php'] : $typeMapping['php'])
                     : '';
 
-                $default = $tm['nullable'] ? ' = null' : '';
+                $default = $typeMapping['nullable'] ? ' = null' : '';
 
                 $constructorLines[] = "public {$hint} \${$fieldName}{$default},";
 
                 $toArrayLines[] = "'{$fieldName}' => \$this->{$fieldName},";
 
-                $base = $tm['base'];
-                if (!isset($scalarMap[$base]) && isset($typeIndex[$base])) {
+                $base = $typeMapping['base'];
+                if (! isset($scalarMap[$base]) && isset($typeIndex[$base])) {
                     $imports[$base] = $typeIndex[$base];
                 }
             }
 
             $constructor = implode("\n", array_map(
-                fn($line) => '        ' . $line,
+                fn ($line) => '        '.$line,
                 $constructorLines
             ));
 
             $toArray = implode("\n", array_map(
-                fn($line) => '            ' . $line,
+                fn ($line) => '            '.$line,
                 $toArrayLines
             ));
 
@@ -112,11 +113,11 @@ class InputsGenerator
 
             $code = str_replace(
                 ['{{ namespace }}', '{{ uses }}', '{{ class }}', '{{ constructor }}', '{{ to_array }}'],
-                [$namespace, $uses, $className, rtrim($constructor, ","), rtrim($toArray, ",")],
+                [$namespace, $uses, $className, rtrim($constructor, ','), rtrim($toArray, ',')],
                 $stub
             );
 
-            $path = $targetDir . '/' . $className . '.php';
+            $path = $targetDir.'/'.$className.'.php';
             $this->files->writeIfChanged($path, $code);
             $generatedFiles[] = $path;
         }
