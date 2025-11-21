@@ -156,10 +156,19 @@ class OperationsGenerator
             // Если это Input объект, вызываем toArray()
             $varValue = "\$this->{$argName}";
             if (isset($typeNames[$argBase]) && $typeNames[$argBase] === 'input') {
-                $varValue = "\$this->{$argName}->toArray()";
+                // Используем null-safe оператор для nullable типов
+                if ($argTypeMapping['nullable']) {
+                    $varValue = "\$this->{$argName}?->toArray()";
+                } else {
+                    $varValue = "\$this->{$argName}->toArray()";
+                }
             } elseif (isset($typeNames[$argBase]) && $typeNames[$argBase] === 'enum') {
-                // Enum нужно преобразовать в значение
-                $varValue = "\$this->{$argName}->value";
+                // Enum нужно преобразовать в значение, используем null-safe оператор для nullable типов
+                if ($argTypeMapping['nullable']) {
+                    $varValue = "\$this->{$argName}?->value";
+                } else {
+                    $varValue = "\$this->{$argName}->value";
+                }
             }
 
             $varsLines[] = "'{$argName}' => {$varValue},";
