@@ -3,6 +3,8 @@
 
 $autoload = __DIR__ . '/../../../autoload.php';
 
+require $autoload;
+
 use GraphQLCodegen\Console\App;
 
 exit((new App())->run($argv));
