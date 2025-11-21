@@ -35,5 +35,10 @@ abstract class Operation
 
         return $this->getDefaultSelectionSet();
     }
+
+    public function hasCustomSelectionSet(): bool
+    {
+        return $this->customSelectionSet !== null;
+    }
 }
 
