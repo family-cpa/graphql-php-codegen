@@ -10,7 +10,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "GraphQLCodegen\\Tests\\": "tests/"
+      "Tests\\": "tests/"
     }
   },
   "bin": [

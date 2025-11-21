@@ -1,0 +1,34 @@
+scalar Upload
+
+enum Role {
+    DEFAULT
+    ADMIN
+}
+
+input CreateUserInput {
+    name: String!
+    email: String!
+    picture: String
+    role: Role!
+}
+
+type User @key(fields: "id", resolvable: false) {
+    id: String!
+    name: String!
+    email: String!
+    picture: String
+    role: Role!
+}
+
+type Query {
+    user(id: String!): User!
+
+    users(
+        first: Int! = 10
+        perPage: Int
+    ): [User!]
+}
+
+type Mutation {
+    createUser(input: CreateUserInput!): User
+}

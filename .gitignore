@@ -17,4 +17,4 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /tests/output
-/tests/fixtures/*
+composer.lock

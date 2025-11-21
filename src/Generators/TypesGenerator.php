@@ -72,13 +72,13 @@ class TypesGenerator
 
                 $constructorLines[] = "public {$hintPart}\${$fieldName}{$default},";
 
-                $fromArrayValue = $this->generateFromArrayValue($fieldName, $typeMapping, $scalarMap, $enumNames, $typeNames, $baseNamespace);
-                $fromArrayLines[] = $fromArrayValue;
-
                 $import = $this->resolveImport($typeMapping['base'], $className, $typeNames, $enumNames, $inputNames, $baseNamespace);
                 if ($import) {
                     $imports[$import] = true;
                 }
+
+                $fromArrayValue = $this->generateFromArrayValue($fieldName, $typeMapping, $scalarMap, $enumNames, $typeNames, $baseNamespace, $imports);
+                $fromArrayLines[] = $fromArrayValue;
             }
 
             $constructor = implode("\n", array_map(
@@ -157,7 +157,8 @@ class TypesGenerator
         array $scalarMap,
         array $enumNames,
         array $typeNames,
-        string $baseNamespace
+        string $baseNamespace,
+        array $imports = []
     ): string {
         $base = $typeMapping['base'];
         $isList = $typeMapping['isList'];
@@ -172,6 +173,9 @@ class TypesGenerator
             $nullCheck = '';
         }
 
+        // Получаем короткое имя класса из импортов
+        $shortClassName = $this->getShortClassName($base, $baseNamespace, $enumNames, $typeNames, $imports);
+
         if ($isList) {
             if (isset($scalarMap[$base])) {
                 $phpType = $scalarMap[$base];
@@ -180,15 +184,11 @@ class TypesGenerator
             }
 
             if (isset($enumNames[$base])) {
-                $enumClass = "{$baseNamespace}\\Enums\\{$base}";
-
-                return "{$nullCheck}array_map(fn(\$value) => {$enumClass}::tryFrom(\$value) ?? \$value, {$valueExprWrapped} ?? [])";
+                return "{$nullCheck}array_map(fn(\$value) => {$shortClassName}::tryFrom(\$value) ?? \$value, {$valueExprWrapped} ?? [])";
             }
 
             if (isset($typeNames[$base])) {
-                $typeClass = "{$baseNamespace}\\Types\\{$base}";
-
-                return "{$nullCheck}array_map(fn(\$value) => {$typeClass}::fromArray(\$value), {$valueExprWrapped} ?? [])";
+                return "{$nullCheck}array_map(fn(\$value) => {$shortClassName}::fromArray(\$value), {$valueExprWrapped} ?? [])";
             }
 
             return "{$nullCheck}{$valueExprWrapped} ?? []";
@@ -201,17 +201,40 @@ class TypesGenerator
         }
 
         if (isset($enumNames[$base])) {
-            $enumClass = "{$baseNamespace}\\Enums\\{$base}";
-
-            return "{$nullCheck}{$enumClass}::tryFrom({$valueExprWrapped}) ?? {$valueExprWrapped}";
+            return "{$nullCheck}{$shortClassName}::tryFrom({$valueExprWrapped}) ?? {$valueExprWrapped}";
         }
 
         if (isset($typeNames[$base])) {
-            $typeClass = "{$baseNamespace}\\Types\\{$base}";
-
-            return "{$nullCheck}{$typeClass}::fromArray({$valueExprWrapped})";
+            return "{$nullCheck}{$shortClassName}::fromArray({$valueExprWrapped})";
         }
 
         return "{$nullCheck}{$valueExprWrapped}";
+    }
+
+    private function getShortClassName(string $base, string $baseNamespace, array $enumNames, array $typeNames, array $imports): string
+    {
+        // Проверяем, есть ли импорт для этого класса
+        foreach ($imports as $import => $_) {
+            // Импорты хранятся как ключи массива в формате "use Namespace\Class;"
+            if (preg_match('/use\s+([^;]+)\s*;/', $import, $matches)) {
+                $fullPath = trim($matches[1]);
+                $parts = explode('\\', $fullPath);
+                $importedName = end($parts);
+                if ($importedName === $base) {
+                    return $base;
+                }
+            }
+        }
+
+        // Если импорта нет, используем полный путь
+        if (isset($enumNames[$base])) {
+            return "{$baseNamespace}\\Enums\\{$base}";
+        }
+
+        if (isset($typeNames[$base])) {
+            return "{$baseNamespace}\\Types\\{$base}";
+        }
+
+        return $base;
     }
 }

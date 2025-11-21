@@ -143,6 +143,7 @@ class OperationsGenerator
             }
 
             $argTypeMapping = $this->mapper->map($argType);
+            $argBase = $argTypeMapping['base'];
 
             $hint = $argTypeMapping['php'] !== 'mixed'
                 ? ($argTypeMapping['nullable'] ? '?'.$argTypeMapping['php'] : $argTypeMapping['php'])
@@ -152,7 +153,16 @@ class OperationsGenerator
 
             $ctorLines[] = "public {$hint} \${$argName}{$default},";
 
-            $varsLines[] = "'{$argName}' => \$this->{$argName},";
+            // Если это Input объект, вызываем toArray()
+            $varValue = "\$this->{$argName}";
+            if (isset($typeNames[$argBase]) && $typeNames[$argBase] === 'input') {
+                $varValue = "\$this->{$argName}->toArray()";
+            } elseif (isset($typeNames[$argBase]) && $typeNames[$argBase] === 'enum') {
+                // Enum нужно преобразовать в значение
+                $varValue = "\$this->{$argName}->value";
+            }
+
+            $varsLines[] = "'{$argName}' => {$varValue},";
         }
 
         $constructor = '';
@@ -274,13 +284,10 @@ class OperationsGenerator
             $typeClass = "'{$phpType}'";
         } elseif (isset($typeNames[$typeMapping['base']])) {
             $typeKind = $typeNames[$typeMapping['base']];
-            if ($typeKind === 'enum') {
-                $fullType = $baseNamespace.'\\Enums\\'.$typeMapping['base'];
-                $typeClass = "{$fullType}::class";
-            } elseif ($typeKind === 'type') {
-                $fullType = $baseNamespace.'\\Types\\'.$typeMapping['base'];
-                $typeClass = "{$fullType}::class";
-            }
+            $baseTypeName = $typeMapping['base'];
+            // Используем короткое имя, если есть импорт
+            $shortName = $this->getShortClassNameForType($baseTypeName, $baseNamespace, $typeKind, $imports);
+            $typeClass = "{$shortName}::class";
         }
 
         if (empty($typeClass)) {
@@ -396,5 +403,29 @@ class OperationsGenerator
         }
 
         return implode("\n", $lines);
+    }
+
+    private function getShortClassNameForType(string $baseTypeName, string $baseNamespace, string $typeKind, array $imports): string
+    {
+        // Проверяем, есть ли импорт для этого класса
+        foreach ($imports as $import) {
+            if (preg_match('/use\s+([^;]+)\s*;\s*$/', $import, $matches)) {
+                $fullPath = trim($matches[1]);
+                $parts = explode('\\', $fullPath);
+                $importedName = end($parts);
+                if ($importedName === $baseTypeName) {
+                    return $baseTypeName;
+                }
+            }
+        }
+
+        // Если импорта нет, используем полный путь
+        if ($typeKind === 'enum') {
+            return $baseNamespace.'\\Enums\\'.$baseTypeName;
+        } elseif ($typeKind === 'type') {
+            return $baseNamespace.'\\Types\\'.$baseTypeName;
+        }
+
+        return $baseTypeName;
     }
 }
