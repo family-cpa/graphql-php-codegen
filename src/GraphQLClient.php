@@ -25,16 +25,22 @@ class GraphQLClient
 
     public function execute(Operation $operation): mixed
     {
+        $payload = [
+            'query' => $operation->document(),
+        ];
+
+        $variables = $operation->variables();
+        if (! empty($variables)) {
+            $payload['variables'] = $variables;
+        }
+
         $response = Http::withHeaders(array_merge(
             [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ],
             $this->headers
-        ))->post($this->endpoint, [
-            'query' => $operation->document(),
-            'variables' => $operation->variables(),
-        ]);
+        ))->post($this->endpoint, $payload);
 
         if (! $response->successful()) {
             throw new HttpException($response->status(), $response->body());
