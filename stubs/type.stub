@@ -10,6 +10,8 @@ namespace {{ namespace }};
 
 class {{ class }}
 {
+{{ constants }}
+
     public function __construct(
 {{ constructor }}
     ) {}

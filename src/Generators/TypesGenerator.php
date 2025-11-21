@@ -50,6 +50,7 @@ class TypesGenerator
 
             $constructorLines = [];
             $fromArrayLines = [];
+            $fieldConstants = [];
             $imports = [];
             $scalarMap = $this->mapper->scalarMap();
 
@@ -60,6 +61,12 @@ class TypesGenerator
                 if (empty($fieldName) || empty($fieldType)) {
                     continue;
                 }
+
+                // Генерируем константу для поля
+                // Преобразуем camelCase в SNAKE_CASE: offerID -> OFFER_ID
+                $constantName = preg_replace('/([a-z])([A-Z])/', '$1_$2', $fieldName);
+                $constantName = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '_', $constantName));
+                $fieldConstants[] = "    public const {$constantName} = '{$fieldName}';";
 
                 $typeMapping = $this->mapper->map($fieldType);
 
@@ -92,10 +99,11 @@ class TypesGenerator
             ));
 
             $uses = $imports ? implode("\n", array_keys($imports)) : '';
+            $constants = $fieldConstants ? implode("\n", $fieldConstants) : '';
 
             $code = str_replace(
-                ['{{ namespace }}', '{{ uses }}', '{{ class }}', '{{ constructor }}', '{{ from_array }}'],
-                [$namespace, $uses, $className, rtrim($constructor, ','), $fromArray],
+                ['{{ namespace }}', '{{ uses }}', '{{ class }}', '{{ constants }}', '{{ constructor }}', '{{ from_array }}'],
+                [$namespace, $uses, $className, $constants, rtrim($constructor, ','), $fromArray],
                 $stub
             );
 

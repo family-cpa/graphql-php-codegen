@@ -6,23 +6,32 @@
 
 namespace {{ namespace }};
 
-use GraphQLCodegen\Contracts\Operation;
+use GraphQLCodegen\Operation;
+use GraphQLCodegen\Support\SelectionSetBuilder;
 
 {{ uses }}
 
-class {{ class }} implements Operation
+class {{ class }} extends Operation
 {
     public function __construct(
 {{ constructor }}
     ) {}
 
-    public function document(): string
+    protected function getDefaultSelectionSet(): string
     {
         return <<<'GQL'
-mutation {{ operation_name }}{{ args_signature }} {
-    {{ field_name }}{{ args_pass }}{{ selection }}
-}
+{{ selection }}
 GQL;
+    }
+
+    public function document(): string
+    {
+        $selection = $this->selectionSet();
+        $mutation = <<<'GQL'
+mutation {{ operation_name }}{{ args_signature }} {
+    {{ field_name }}{{ args_pass }}
+GQL;
+        return $mutation.$selection."\n}";
     }
 
     public function variables(): array

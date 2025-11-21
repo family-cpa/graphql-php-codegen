@@ -2,7 +2,6 @@
 
 namespace GraphQLCodegen;
 
-use GraphQLCodegen\Contracts\Operation;
 use GraphQLCodegen\Exceptions\GraphQLException;
 use GraphQLCodegen\Exceptions\HttpException;
 use GraphQLCodegen\Schema\TypeMapper;

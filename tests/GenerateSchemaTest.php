@@ -5,8 +5,8 @@ namespace Tests;
 use GraphQLCodegen\Console\App;
 use PHPUnit\Framework\TestCase;
 
-class GenerateSchemaTest extends TestCase
-{
+ class GenerateSchemaTest extends TestCase
+ {
     private string $outputDir;
 
     protected function setUp(): void
@@ -89,7 +89,7 @@ class GenerateSchemaTest extends TestCase
 
         $content = file_get_contents($userQueryPath);
         $this->assertStringContainsString('class UserQuery', $content);
-        $this->assertStringContainsString('implements Operation', $content);
+        $this->assertStringContainsString('extends Operation', $content);
         $this->assertStringContainsString('public function document', $content);
         $this->assertStringContainsString('public function variables', $content);
         $this->assertStringContainsString('public function type', $content);
@@ -119,7 +119,7 @@ class GenerateSchemaTest extends TestCase
 
         $content = file_get_contents($mutationPath);
         $this->assertStringContainsString('class CreateUserMutation', $content);
-        $this->assertStringContainsString('implements Operation', $content);
+        $this->assertStringContainsString('extends Operation', $content);
         $this->assertStringContainsString('mutation CreateUser', $content);
         $this->assertStringContainsString('createUser(input: $input)', $content);
         $this->assertStringContainsString('use Tests\Output\Inputs\CreateUserInput', $content);
@@ -149,7 +149,7 @@ class GenerateSchemaTest extends TestCase
         require_once $this->outputDir.'/Operations/Query/UserQuery.php';
 
         $query = new \Tests\Output\Operations\Query\UserQuery('123');
-        $this->assertInstanceOf(\GraphQLCodegen\Contracts\Operation::class, $query);
+        $this->assertInstanceOf(\GraphQLCodegen\Operation::class, $query);
         $this->assertStringContainsString('query User', $query->document());
         $this->assertStringContainsString('user(id: $id)', $query->document());
         $this->assertEquals(['id' => '123'], $query->variables());
@@ -279,7 +279,7 @@ class GenerateSchemaTest extends TestCase
         );
 
         $mutation = new \Tests\Output\Operations\Mutation\CreateUserMutation($input);
-        $this->assertInstanceOf(\GraphQLCodegen\Contracts\Operation::class, $mutation);
+        $this->assertInstanceOf(\GraphQLCodegen\Operation::class, $mutation);
         $this->assertStringContainsString('mutation CreateUser', $mutation->document());
         $this->assertStringContainsString('createUser(input: $input)', $mutation->document());
 
@@ -387,4 +387,4 @@ class GenerateSchemaTest extends TestCase
             $this->assertStringContainsString('This file is auto-generated', $content);
         }
     }
-}
+ }
