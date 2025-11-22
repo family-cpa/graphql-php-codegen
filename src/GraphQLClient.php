@@ -22,6 +22,11 @@ class GraphQLClient
         $this->typeMapper = new TypeMapper;
     }
 
+    /**
+     * @template T of Operation
+     * @param Operation<T> $operation
+     * @return Operation<T>
+     */
     public function execute(Operation $operation): mixed
     {
         $payload = [

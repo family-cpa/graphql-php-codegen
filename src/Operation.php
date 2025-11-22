@@ -4,6 +4,9 @@ namespace GraphQLCodegen;
 
 use GraphQLCodegen\Support\SelectionSetBuilder;
 
+/**
+ * @template T of Operation
+ */
 abstract class Operation
 {
     private ?string $customSelectionSet = null;
