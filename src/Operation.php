@@ -2,6 +2,8 @@
 
 namespace GraphQLCodegen;
 
+use GraphQLCodegen\Support\SelectionSetBuilder;
+
 abstract class Operation
 {
     private ?string $customSelectionSet = null;
@@ -20,9 +22,9 @@ abstract class Operation
 
     abstract protected function getDefaultSelectionSet(): string;
 
-    public function withSelectionSet(string $selectionSet): self
+    public function withSelectionSet(array $fields): self
     {
-        $this->customSelectionSet = $selectionSet;
+        $this->customSelectionSet = SelectionSetBuilder::fromFields($fields);
 
         return $this;
     }
