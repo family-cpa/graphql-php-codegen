@@ -86,7 +86,7 @@ class TypesGenerator
 
                 // Генерируем присваивание в fromArray только если поле есть в $data
                 $fromArrayValue = $this->generateFromArrayValue($fieldName, $typeMapping, $scalarMap, $enumNames, $typeNames, $baseNamespace, $imports);
-                $fromArrayLines[] = "        if (isset(\$data['{$fieldName}'])) {";
+                $fromArrayLines[] = "        if (array_key_exists('{$fieldName}', \$data)) {";
                 $fromArrayLines[] = "            \$instance->{$fieldName} = {$fromArrayValue};";
                 $fromArrayLines[] = "        }";
             }
