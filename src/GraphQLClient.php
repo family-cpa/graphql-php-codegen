@@ -54,18 +54,18 @@ class GraphQLClient
             );
         }
 
-        $rawResult = $data['data'][$operation->operation()] ?? null;
+        $rawResult = $data['data'][$operation->operation] ?? null;
 
         if ($rawResult === null) {
             return null;
         }
 
         // Если используется кастомный selection set, возвращаем массив без десериализации
-        //if ($operation->hasCustomSelectionSet()) {
-        //    return $rawResult;
-        //}
+        if ($operation->hasCustomSelectionSet()) {
+            return $rawResult;
+        }
 
-        return $this->deserialize($rawResult, $operation->graphqlType(), $operation->namespace());
+        return $this->deserialize($rawResult, $operation->graphqlType, $operation->namespace);
     }
 
     protected function deserialize(mixed $data, string $graphQLType, ?string $baseNamespace = null): mixed

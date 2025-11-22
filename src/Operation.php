@@ -6,17 +6,17 @@ abstract class Operation
 {
     private ?string $customSelectionSet = null;
 
+    public string $type;
+
+    public string $graphqlType;
+
+    public string $namespace;
+
+    public string $operation;
+
     abstract public function document(): string;
 
     abstract public function variables(): array;
-
-    abstract public function type(): string;
-
-    abstract public function graphqlType(): string;
-
-    abstract public function namespace(): string;
-
-    abstract public function operation(): string;
 
     abstract protected function getDefaultSelectionSet(): string;
 

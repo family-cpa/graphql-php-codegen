@@ -13,6 +13,14 @@ use GraphQLCodegen\Support\SelectionSetBuilder;
 
 class {{ class }} extends Operation
 {
+    public string $type = {{ type_class }};
+
+    public string $graphqlType = '{{ graphql_return_type }}';
+
+    public string $namespace = '{{ base_namespace }}';
+
+    public string $operation = '{{ field_name }}';
+
     public function __construct(
 {{ constructor }}
     ) {}
@@ -39,25 +47,5 @@ GQL;
         return array_filter([
 {{ variables }}
         ], fn($v) => $v !== null);
-    }
-
-    public function type(): string
-    {
-        return {{ type_class }};
-    }
-
-    public function graphqlType(): string
-    {
-        return '{{ graphql_return_type }}';
-    }
-
-    public function namespace(): string
-    {
-        return '{{ base_namespace }}';
-    }
-
-    public function operation(): string
-    {
-        return '{{ field_name }}';
     }
 }

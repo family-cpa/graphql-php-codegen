@@ -92,10 +92,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertStringContainsString('extends Operation', $content);
         $this->assertStringContainsString('public function document', $content);
         $this->assertStringContainsString('public function variables', $content);
-        $this->assertStringContainsString('public function type', $content);
-        $this->assertStringContainsString('public function graphqlType', $content);
-        $this->assertStringContainsString('public function namespace', $content);
-        $this->assertStringContainsString('public function operation', $content);
+        $this->assertStringContainsString('public string $type', $content);
+        $this->assertStringContainsString('public string $graphqlType', $content);
+        $this->assertStringContainsString('public string $namespace', $content);
+        $this->assertStringContainsString('public string $operation', $content);
         $this->assertStringContainsString('query User', $content);
         $this->assertStringContainsString('user(id: $id)', $content);
 
@@ -104,8 +104,8 @@ use PHPUnit\Framework\TestCase;
 
         $usersContent = file_get_contents($usersQueryPath);
         $this->assertStringContainsString('class UsersQuery', $usersContent);
-        $this->assertStringContainsString("return 'array'", $usersContent);
-        $this->assertStringContainsString("return '[User!]'", $usersContent);
+        $this->assertStringContainsString("public string \$type = 'array'", $usersContent);
+        $this->assertStringContainsString("public string \$graphqlType = '[User!]'", $usersContent);
     }
 
     public function testMutationsAreGenerated(): void
@@ -153,10 +153,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertStringContainsString('query User', $query->document());
         $this->assertStringContainsString('user(id: $id)', $query->document());
         $this->assertEquals(['id' => '123'], $query->variables());
-        $this->assertEquals(\Tests\Output\Types\User::class, $query->type());
-        $this->assertEquals('User!', $query->graphqlType());
-        $this->assertEquals('Tests\Output', $query->namespace());
-        $this->assertEquals('user', $query->operation());
+        $this->assertEquals(\Tests\Output\Types\User::class, $query->type);
+        $this->assertEquals('User!', $query->graphqlType);
+        $this->assertEquals('Tests\Output', $query->namespace);
+        $this->assertEquals('user', $query->operation);
     }
 
     public function testTypeFromArrayWorks(): void
@@ -257,8 +257,8 @@ use PHPUnit\Framework\TestCase;
         require_once $this->outputDir.'/Operations/Query/UsersQuery.php';
 
         $query = new \Tests\Output\Operations\Query\UsersQuery(10, null);
-        $this->assertEquals('array', $query->type());
-        $this->assertEquals('[User!]', $query->graphqlType());
+        $this->assertEquals('array', $query->type);
+        $this->assertEquals('[User!]', $query->graphqlType);
     }
 
     public function testMutationWithInput(): void
@@ -292,10 +292,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertInstanceOf(\Tests\Output\Enums\Role::class, $variables['input']['role']);
         $this->assertEquals(\Tests\Output\Enums\Role::ADMIN, $variables['input']['role']);
 
-        $this->assertEquals(\Tests\Output\Types\User::class, $mutation->type());
-        $this->assertEquals('User', $mutation->graphqlType());
-        $this->assertEquals('Tests\Output', $mutation->namespace());
-        $this->assertEquals('createUser', $mutation->operation());
+        $this->assertEquals(\Tests\Output\Types\User::class, $mutation->type);
+        $this->assertEquals('User', $mutation->graphqlType);
+        $this->assertEquals('Tests\Output', $mutation->namespace);
+        $this->assertEquals('createUser', $mutation->operation);
     }
 
     public function testTypeFromArrayWithList(): void
