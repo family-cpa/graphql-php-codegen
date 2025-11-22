@@ -23,12 +23,11 @@ class GraphQLClient
     }
 
     /**
-     * @template TReturn
      * @param Operation $operation
-     * @return TReturn|null
+     * @return mixed Тип из $operation->type или null
      * @phpstan-template TReturn
      * @phpstan-param Operation $operation
-     * @phpstan-return TReturn|null
+     * @phpstan-return ($operation->type is class-string<TReturn> ? TReturn : ($operation->type is 'array' ? array<int, mixed> : mixed))|null
      */
     public function execute(Operation $operation): mixed
     {
