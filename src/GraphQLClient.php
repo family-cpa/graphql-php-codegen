@@ -23,9 +23,12 @@ class GraphQLClient
     }
 
     /**
-     * @template T of Operation
-     * @param Operation<T> $operation
-     * @return Operation<T>
+     * @template TReturn
+     * @param Operation $operation
+     * @return TReturn|null
+     * @phpstan-template TReturn
+     * @phpstan-param Operation $operation
+     * @phpstan-return TReturn|null
      */
     public function execute(Operation $operation): mixed
     {
