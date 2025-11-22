@@ -61,9 +61,9 @@ class GraphQLClient
         }
 
         // Если используется кастомный selection set, возвращаем массив без десериализации
-        if ($operation->hasCustomSelectionSet()) {
-            return $rawResult;
-        }
+        //if ($operation->hasCustomSelectionSet()) {
+        //    return $rawResult;
+        //}
 
         return $this->deserialize($rawResult, $operation->graphqlType, $operation->namespace);
     }
