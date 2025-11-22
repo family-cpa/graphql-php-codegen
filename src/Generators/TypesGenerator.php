@@ -48,7 +48,7 @@ class TypesGenerator
 
             $fields = $type['fields'] ?? [];
 
-            $constructorLines = [];
+            $propertyDocLines = [];
             $fromArrayLines = [];
             $fieldConstants = [];
             $imports = [];
@@ -70,40 +70,32 @@ class TypesGenerator
 
                 $typeMapping = $this->mapper->map($fieldType);
 
-                $hint = $typeMapping['php'] !== 'mixed'
-                    ? ($typeMapping['nullable'] ? '?'.$typeMapping['php'] : $typeMapping['php'])
-                    : '';
-
-                $default = $typeMapping['nullable'] ? ' = null' : '';
-                $hintPart = $hint !== '' ? $hint.' ' : '';
-
-                $constructorLines[] = "public {$hintPart}\${$fieldName}{$default},";
-
                 $import = $this->resolveImport($typeMapping['base'], $className, $typeNames, $enumNames, $inputNames, $baseNamespace);
                 if ($import) {
                     $imports[$import] = true;
                 }
 
+                // Генерируем @property докблок
+                $phpType = $this->getPhpTypeForDoc($typeMapping, $typeMapping['base'], $scalarMap, $enumNames, $typeNames, $baseNamespace, $imports);
+                $propertyDocLines[] = " * @property {$phpType} \${$fieldName}";
+
+                // Генерируем присваивание в fromArray только если поле есть в $data
                 $fromArrayValue = $this->generateFromArrayValue($fieldName, $typeMapping, $scalarMap, $enumNames, $typeNames, $baseNamespace, $imports);
-                $fromArrayLines[] = $fromArrayValue;
+                $fromArrayLines[] = "        if (isset(\$data['{$fieldName}'])) {";
+                $fromArrayLines[] = "            \$instance->{$fieldName} = {$fromArrayValue};";
+                $fromArrayLines[] = "        }";
             }
 
-            $constructor = implode("\n", array_map(
-                fn ($line) => '        '.$line,
-                $constructorLines
-            ));
+            $properties = implode("\n", $propertyDocLines);
 
-            $fromArray = implode(",\n", array_map(
-                fn ($line) => '            '.$line,
-                $fromArrayLines
-            ));
+            $fromArray = implode("\n", $fromArrayLines);
 
             $uses = $imports ? implode("\n", array_keys($imports)) : '';
             $constants = $fieldConstants ? implode("\n", $fieldConstants) : '';
 
             $code = str_replace(
-                ['{{ namespace }}', '{{ uses }}', '{{ class }}', '{{ constants }}', '{{ constructor }}', '{{ from_array }}'],
-                [$namespace, $uses, $className, $constants, rtrim($constructor, ','), $fromArray],
+                ['{{ namespace }}', '{{ uses }}', '{{ class }}', '{{ constants }}', '{{ properties }}', '{{ from_array }}'],
+                [$namespace, $uses, $className, $constants, $properties, $fromArray],
                 $stub
             );
 
@@ -172,7 +164,8 @@ class TypesGenerator
         $isList = $typeMapping['isList'];
         $nullable = $typeMapping['nullable'];
 
-        $valueExpr = "\$data['{$fieldName}'] ?? null";
+        // Внутри isset() блока $data['field'] всегда существует, не нужен ??
+        $valueExpr = "\$data['{$fieldName}']";
         $valueExprWrapped = "({$valueExpr})";
 
         if ($nullable) {
@@ -217,6 +210,48 @@ class TypesGenerator
         }
 
         return "{$nullCheck}{$valueExprWrapped}";
+    }
+
+    private function getPhpTypeForDoc(
+        array $typeMapping,
+        string $base,
+        array $scalarMap,
+        array $enumNames,
+        array $typeNames,
+        string $baseNamespace,
+        array $imports
+    ): string {
+        $isList = $typeMapping['isList'];
+        $nullable = $typeMapping['nullable'];
+
+        // Получаем короткое имя класса из импортов
+        $shortClassName = $this->getShortClassName($base, $baseNamespace, $enumNames, $typeNames, $imports);
+
+        $type = '';
+        if ($isList) {
+            if (isset($scalarMap[$base])) {
+                $phpType = $scalarMap[$base];
+                $type = "{$phpType}[]";
+            } elseif (isset($enumNames[$base])) {
+                $type = "{$shortClassName}[]";
+            } elseif (isset($typeNames[$base])) {
+                $type = "{$shortClassName}[]";
+            } else {
+                $type = 'array';
+            }
+        } else {
+            if (isset($scalarMap[$base])) {
+                $type = $scalarMap[$base];
+            } elseif (isset($enumNames[$base])) {
+                $type = $shortClassName;
+            } elseif (isset($typeNames[$base])) {
+                $type = $shortClassName;
+            } else {
+                $type = 'mixed';
+            }
+        }
+
+        return $nullable ? "{$type}|null" : $type;
     }
 
     private function getShortClassName(string $base, string $baseNamespace, array $enumNames, array $typeNames, array $imports): string

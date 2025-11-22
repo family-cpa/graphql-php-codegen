@@ -36,11 +36,11 @@ use PHPUnit\Framework\TestCase;
 
         $content = file_get_contents($userTypePath);
         $this->assertStringContainsString('class User', $content);
-        $this->assertStringContainsString('public function __construct', $content);
         $this->assertStringContainsString('public static function fromArray', $content);
-        $this->assertStringContainsString('public string $id', $content);
-        $this->assertStringContainsString('public string $name', $content);
-        $this->assertStringContainsString('public ?string $picture', $content);
+        $this->assertStringContainsString('@property', $content);
+        $this->assertStringContainsString('@property string $id', $content);
+        $this->assertStringContainsString('@property string $name', $content);
+        $this->assertStringContainsString('@property string|null $picture', $content);
         $this->assertStringContainsString('use Tests\Output\Enums\Role', $content);
     }
 
