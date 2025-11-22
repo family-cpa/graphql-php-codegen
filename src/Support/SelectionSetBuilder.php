@@ -30,4 +30,3 @@ class SelectionSetBuilder
         return " {\n".implode("\n", $lines)."\n    }";
     }
 }
-

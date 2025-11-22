@@ -7,7 +7,6 @@
 namespace {{ namespace }};
 
 use GraphQLCodegen\Operation;
-use GraphQLCodegen\Support\SelectionSetBuilder;
 
 {{ uses }}
 
@@ -27,19 +26,17 @@ class {{ class }} extends Operation
 
     protected function getDefaultSelectionSet(): string
     {
-        return <<<'GQL'
-{{ selection }}
-GQL;
+        return '{{ selection }}';
     }
 
     public function document(): string
     {
         $selection = $this->selectionSet();
-        $query = <<<'GQL'
-query {{ operation_name }}{{ args_signature }} {
-    {{ field_name }}{{ args_pass }}
-GQL;
-        return $query.$selection."\n}";
+        $query = 'query {{ operation_name }}{{ args_signature }} {'."\n".
+            '    {{ field_name }}{{ args_pass }}'.$selection."\n".
+            '}';
+
+        return $query;
     }
 
     public function variables(): array

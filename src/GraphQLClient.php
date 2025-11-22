@@ -48,10 +48,7 @@ class GraphQLClient
         $data = $response->json();
 
         if (isset($data['errors'])) {
-            throw new GraphQLException(
-                $data['errors'],
-                $data['extensions'] ?? null
-            );
+            throw new GraphQLException($data['errors'], $data['extensions'] ?? null);
         }
 
         $rawResult = $data['data'][$operation->operation] ?? null;
@@ -59,11 +56,6 @@ class GraphQLClient
         if ($rawResult === null) {
             return null;
         }
-
-        // Если используется кастомный selection set, возвращаем массив без десериализации
-        //if ($operation->hasCustomSelectionSet()) {
-        //    return $rawResult;
-        //}
 
         return $this->deserialize($rawResult, $operation->graphqlType, $operation->namespace);
     }
@@ -103,10 +95,10 @@ class GraphQLClient
         }
 
         if ($typeMapping['isList']) {
-            return array_map(fn ($item) => $className::fromArray($item), $data);
+            return array_map(fn ($item) => $className::tryFrom($item), $data);
         }
 
-        return $className::fromArray($data);
+        return $className::tryFrom($data);
     }
 
     protected function resolveClassName(string $baseType, ?string $baseNamespace): ?string

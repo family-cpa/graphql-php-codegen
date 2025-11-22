@@ -228,7 +228,7 @@ class OperationsGenerator
         if (! isset($scalarMap[$base])) {
             $selectionSet = $this->buildSelectionSet($base, $typeMap, $typeNames, $scalarMap, 1);
             if ($selectionSet) {
-                $selection = " {\n{$selectionSet}\n    }";
+                $selection = ' { '.$selectionSet.' }';
             } else {
                 // Если нет полей, все равно нужны фигурные скобки для валидного GraphQL
                 $selection = ' {}';
@@ -377,8 +377,7 @@ class OperationsGenerator
             return '';
         }
 
-        $lines = [];
-        $indent = str_repeat('    ', $depth);
+        $fieldParts = [];
 
         foreach ($fields as $field) {
             $fieldName = $field['name'] ?? '';
@@ -393,25 +392,25 @@ class OperationsGenerator
 
             // Если это скаляр или enum - просто имя поля
             if (isset($scalarMap[$fieldBase]) || (isset($typeNames[$fieldBase]) && $typeNames[$fieldBase] === 'enum')) {
-                $lines[] = $indent.$fieldName;
+                $fieldParts[] = $fieldName;
             }
             // Если это объект - рекурсивно генерируем вложенные поля
             elseif (isset($typeMap[$fieldBase])) {
                 $nestedSelection = $this->buildSelectionSet($fieldBase, $typeMap, $typeNames, $scalarMap, $depth + 1, $visited);
                 if ($nestedSelection) {
-                    $lines[] = $indent.$fieldName." {\n".$nestedSelection."\n".$indent.'}';
+                    $fieldParts[] = $fieldName.' { '.$nestedSelection.' }';
                 } else {
                     // Если вложенных полей нет, но это объект - все равно добавляем поле с пустыми скобками
-                    $lines[] = $indent.$fieldName.' {}';
+                    $fieldParts[] = $fieldName.' {}';
                 }
             }
             // Неизвестный тип - просто имя поля
             else {
-                $lines[] = $indent.$fieldName;
+                $fieldParts[] = $fieldName;
             }
         }
 
-        return implode("\n", $lines);
+        return implode(' ', $fieldParts);
     }
 
     private function getShortClassNameForType(string $baseTypeName, string $baseNamespace, string $typeKind, array $imports): string

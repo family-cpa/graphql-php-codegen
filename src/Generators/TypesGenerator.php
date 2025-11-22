@@ -84,11 +84,11 @@ class TypesGenerator
                 $hint = $this->getPhpTypeHint($typeMapping, $typeMapping['base'], $scalarMap, $enumNames, $typeNames, $baseNamespace, $imports);
                 $propertyLines[] = "    public {$hint} \${$fieldName};";
 
-                // Генерируем присваивание в fromArray только если поле есть в $data
+                // Генерируем присваивание в tryFrom только если поле есть в $data
                 $fromArrayValue = $this->generateFromArrayValue($fieldName, $typeMapping, $scalarMap, $enumNames, $typeNames, $baseNamespace, $imports);
                 $fromArrayLines[] = "        if (array_key_exists('{$fieldName}', \$data)) {";
                 $fromArrayLines[] = "            \$instance->{$fieldName} = {$fromArrayValue};";
-                $fromArrayLines[] = "        }";
+                $fromArrayLines[] = '        }';
             }
 
             $properties = implode("\n", $propertyDocLines);
@@ -195,7 +195,7 @@ class TypesGenerator
             }
 
             if (isset($typeNames[$base])) {
-                return "{$nullCheck}array_map(fn(\$value) => {$shortClassName}::fromArray(\$value), {$valueExprWrapped} ?? [])";
+                return "{$nullCheck}array_map(fn(\$value) => {$shortClassName}::tryFrom(\$value), {$valueExprWrapped} ?? [])";
             }
 
             return "{$nullCheck}{$valueExprWrapped} ?? []";
@@ -212,7 +212,7 @@ class TypesGenerator
         }
 
         if (isset($typeNames[$base])) {
-            return "{$nullCheck}{$shortClassName}::fromArray({$valueExprWrapped})";
+            return "{$nullCheck}{$shortClassName}::tryFrom({$valueExprWrapped})";
         }
 
         return "{$nullCheck}{$valueExprWrapped}";

@@ -43,4 +43,3 @@ abstract class Operation
         return $this->customSelectionSet !== null;
     }
 }
-

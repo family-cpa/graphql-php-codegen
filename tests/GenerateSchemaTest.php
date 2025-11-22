@@ -5,8 +5,8 @@ namespace Tests;
 use GraphQLCodegen\Console\App;
 use PHPUnit\Framework\TestCase;
 
- class GenerateSchemaTest extends TestCase
- {
+class GenerateSchemaTest extends TestCase
+{
     private string $outputDir;
 
     protected function setUp(): void
@@ -15,20 +15,20 @@ use PHPUnit\Framework\TestCase;
         @mkdir($this->outputDir, 0777, true);
     }
 
-    public function testGeneratorRuns(): void
+    public function test_generator_runs(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
 
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         $this->assertFileExists($this->outputDir.'/Types/User.php');
     }
 
-    public function testTypesAreGenerated(): void
+    public function test_types_are_generated(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         $userTypePath = $this->outputDir.'/Types/User.php';
@@ -36,7 +36,7 @@ use PHPUnit\Framework\TestCase;
 
         $content = file_get_contents($userTypePath);
         $this->assertStringContainsString('class User', $content);
-        $this->assertStringContainsString('public static function fromArray', $content);
+        $this->assertStringContainsString('public static function tryFrom', $content);
         $this->assertStringContainsString('@property', $content);
         $this->assertStringContainsString('@property string $id', $content);
         $this->assertStringContainsString('@property string $name', $content);
@@ -44,10 +44,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertStringContainsString('use Tests\Output\Enums\Role', $content);
     }
 
-    public function testEnumsAreGenerated(): void
+    public function test_enums_are_generated(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         $roleEnumPath = $this->outputDir.'/Enums/Role.php';
@@ -59,10 +59,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertStringContainsString('case ADMIN', $content);
     }
 
-    public function testInputsAreGenerated(): void
+    public function test_inputs_are_generated(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         $inputPath = $this->outputDir.'/Inputs/CreateUserInput.php';
@@ -78,10 +78,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertStringContainsString('use Tests\Output\Enums\Role', $content);
     }
 
-    public function testQueriesAreGenerated(): void
+    public function test_queries_are_generated(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         $userQueryPath = $this->outputDir.'/Operations/Query/UserQuery.php';
@@ -108,10 +108,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertStringContainsString("public string \$graphqlType = '[User!]'", $usersContent);
     }
 
-    public function testMutationsAreGenerated(): void
+    public function test_mutations_are_generated(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         $mutationPath = $this->outputDir.'/Operations/Mutation/CreateUserMutation.php';
@@ -125,10 +125,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertStringContainsString('use Tests\Output\Inputs\CreateUserInput', $content);
     }
 
-    public function testClientIsGenerated(): void
+    public function test_client_is_generated(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         $clientPath = $this->outputDir.'/Client.php';
@@ -140,10 +140,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertStringContainsString('public function __construct', $content);
     }
 
-    public function testOperationMethodsWork(): void
+    public function test_operation_methods_work(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Operations/Query/UserQuery.php';
@@ -159,10 +159,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertEquals('user', $query->operation);
     }
 
-    public function testTypeFromArrayWorks(): void
+    public function test_type_from_array_works(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Types/User.php';
@@ -176,7 +176,7 @@ use PHPUnit\Framework\TestCase;
             'role' => 'ADMIN',
         ];
 
-        $user = \Tests\Output\Types\User::fromArray($data);
+        $user = \Tests\Output\Types\User::tryFrom($data);
         $this->assertEquals('123', $user->id);
         $this->assertEquals('John Doe', $user->name);
         $this->assertEquals('john@example.com', $user->email);
@@ -185,10 +185,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertEquals(\Tests\Output\Enums\Role::ADMIN, $user->role);
     }
 
-    public function testTypeFromArrayWithNull(): void
+    public function test_type_from_array_with_null(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Types/User.php';
@@ -201,14 +201,14 @@ use PHPUnit\Framework\TestCase;
             'role' => 'DEFAULT',
         ];
 
-        $user = \Tests\Output\Types\User::fromArray($data);
+        $user = \Tests\Output\Types\User::tryFrom($data);
         $this->assertNull($user->picture);
     }
 
-    public function testInputToArrayWorks(): void
+    public function test_input_to_array_works(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Inputs/CreateUserInput.php';
@@ -228,10 +228,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertEquals(\Tests\Output\Enums\Role::ADMIN, $array['role']);
     }
 
-    public function testInputToArrayFiltersNulls(): void
+    public function test_input_to_array_filters_nulls(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Inputs/CreateUserInput.php';
@@ -248,10 +248,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertArrayNotHasKey('picture', $array);
     }
 
-    public function testListTypeOperation(): void
+    public function test_list_type_operation(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Operations/Query/UsersQuery.php';
@@ -261,10 +261,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertEquals('[User!]', $query->graphqlType);
     }
 
-    public function testMutationWithInput(): void
+    public function test_mutation_with_input(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Operations/Mutation/CreateUserMutation.php';
@@ -298,10 +298,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertEquals('createUser', $mutation->operation);
     }
 
-    public function testTypeFromArrayWithList(): void
+    public function test_type_from_array_with_list(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Types/User.php';
@@ -323,7 +323,7 @@ use PHPUnit\Framework\TestCase;
             ],
         ];
 
-        $users = array_map(fn ($item) => \Tests\Output\Types\User::fromArray($item), $data);
+        $users = array_map(fn ($item) => \Tests\Output\Types\User::tryFrom($item), $data);
         $this->assertCount(2, $users);
         $this->assertEquals('User 1', $users[0]->name);
         $this->assertEquals('User 2', $users[1]->name);
@@ -332,10 +332,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertEquals(\Tests\Output\Enums\Role::DEFAULT, $users[1]->role);
     }
 
-    public function testEnumValues(): void
+    public function test_enum_values(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Enums/Role.php';
@@ -347,10 +347,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertNull(\Tests\Output\Enums\Role::tryFrom('INVALID'));
     }
 
-    public function testQueryWithNullableArgument(): void
+    public function test_query_with_nullable_argument(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         require_once $this->outputDir.'/Operations/Query/UsersQuery.php';
@@ -365,10 +365,10 @@ use PHPUnit\Framework\TestCase;
         $this->assertEquals(['first' => 10, 'perPage' => 20], $variablesWithPerPage);
     }
 
-    public function testGeneratedCodeIsValid(): void
+    public function test_generated_code_is_valid(): void
     {
         $schema = __DIR__.'/fixtures/schema.graphql';
-        $cli = new App();
+        $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
         $files = [
@@ -378,7 +378,7 @@ use PHPUnit\Framework\TestCase;
             $this->outputDir.'/Operations/Query/UserQuery.php',
             $this->outputDir.'/Operations/Query/UsersQuery.php',
             $this->outputDir.'/Operations/Mutation/CreateUserMutation.php',
-            //$this->outputDir.'/Client.php',
+            // $this->outputDir.'/Client.php',
         ];
 
         foreach ($files as $file) {
@@ -387,4 +387,4 @@ use PHPUnit\Framework\TestCase;
             $this->assertStringContainsString('This file is auto-generated', $content);
         }
     }
- }
+}

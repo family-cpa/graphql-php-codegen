@@ -15,7 +15,7 @@ class {{ class }}
 {
 {{ constants }}
 
-    public static function fromArray(array $data): self
+    public static function tryFrom(array $data): self
     {
         $instance = new self;
 {{ from_array }}
