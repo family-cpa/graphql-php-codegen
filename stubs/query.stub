@@ -16,8 +16,6 @@ class {{ class }} extends Operation
 
     public string $graphqlType = '{{ graphql_return_type }}';
 
-    public string $namespace = '{{ base_namespace }}';
-
     public string $operation = '{{ field_name }}';
 
     public function __construct(

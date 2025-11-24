@@ -6,6 +6,8 @@ use GraphQLCodegen\GraphQLClient;
 
 class {{ class }} extends GraphQLClient
 {
+    protected ?string $baseNamespace = '{{ namespace }}';
+
     public function __construct(
         string $endpoint,
         array $headers = []

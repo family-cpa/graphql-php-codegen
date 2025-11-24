@@ -15,11 +15,28 @@ class GraphQLClient
 
     protected TypeMapper $typeMapper;
 
-    public function __construct(string $endpoint, array $headers = [])
+    protected ?string $baseNamespace = null;
+
+    public function __construct(string $endpoint, array $headers = [], ?string $baseNamespace = null)
     {
         $this->endpoint = $endpoint;
         $this->headers = $headers;
         $this->typeMapper = new TypeMapper;
+        $this->baseNamespace = $baseNamespace ?? $this->detectBaseNamespace();
+    }
+
+    protected function detectBaseNamespace(): ?string
+    {
+        $clientClass = static::class;
+        $reflection = new \ReflectionClass($clientClass);
+        $namespace = $reflection->getNamespaceName();
+
+        // Если клиент в корневом namespace, возвращаем null
+        if (empty($namespace)) {
+            return null;
+        }
+
+        return $namespace;
     }
 
     /**
@@ -64,7 +81,7 @@ class GraphQLClient
             return null;
         }
 
-        return $this->deserialize($rawResult, $operation->graphqlType, $operation->namespace);
+        return $this->deserialize($rawResult, $operation->graphqlType, $this->baseNamespace);
     }
 
     protected function deserialize(mixed $data, string $graphQLType, ?string $baseNamespace = null): mixed

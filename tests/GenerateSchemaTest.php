@@ -94,7 +94,6 @@ class GenerateSchemaTest extends TestCase
         $this->assertStringContainsString('public function variables', $content);
         $this->assertStringContainsString('public string $type', $content);
         $this->assertStringContainsString('public string $graphqlType', $content);
-        $this->assertStringContainsString('public string $namespace', $content);
         $this->assertStringContainsString('public string $operation', $content);
         $this->assertStringContainsString('query User', $content);
         $this->assertStringContainsString('user(id: $id)', $content);
@@ -155,7 +154,6 @@ class GenerateSchemaTest extends TestCase
         $this->assertEquals(['id' => '123'], $query->variables());
         $this->assertEquals(\Tests\Output\Types\User::class, $query->type);
         $this->assertEquals('User!', $query->graphqlType);
-        $this->assertEquals('Tests\Output', $query->namespace);
         $this->assertEquals('user', $query->operation);
     }
 
@@ -294,7 +292,6 @@ class GenerateSchemaTest extends TestCase
 
         $this->assertEquals(\Tests\Output\Types\User::class, $mutation->type);
         $this->assertEquals('User', $mutation->graphqlType);
-        $this->assertEquals('Tests\Output', $mutation->namespace);
         $this->assertEquals('createUser', $mutation->operation);
     }
 

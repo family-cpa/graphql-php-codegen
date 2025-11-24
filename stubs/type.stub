@@ -21,4 +21,11 @@ class {{ class }}
 {{ from_array }}
         return $instance;
     }
+
+    public function toArray(): array
+    {
+        $result = [];
+{{ to_array }}
+        return $result;
+    }
 }

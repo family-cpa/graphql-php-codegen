@@ -12,8 +12,6 @@ abstract class Operation
 
     public string $graphqlType;
 
-    public string $namespace;
-
     public string $operation;
 
     abstract public function document(): string;

@@ -51,6 +51,7 @@ class TypesGenerator
             $propertyDocLines = [];
             $propertyLines = [];
             $fromArrayLines = [];
+            $toArrayLines = [];
             $fieldConstants = [];
             $imports = [];
             $scalarMap = $this->mapper->scalarMap();
@@ -89,19 +90,26 @@ class TypesGenerator
                 $fromArrayLines[] = "        if (array_key_exists('{$fieldName}', \$data)) {";
                 $fromArrayLines[] = "            \$instance->{$fieldName} = {$fromArrayValue};";
                 $fromArrayLines[] = '        }';
+
+                // Генерируем код для toArray только если свойство установлено
+                $toArrayValue = $this->generateToArrayValue($fieldName, $typeMapping, $scalarMap, $enumNames, $typeNames, $baseNamespace, $imports);
+                $toArrayLines[] = "        if (isset(\$this->{$fieldName})) {";
+                $toArrayLines[] = "            \$result['{$fieldName}'] = {$toArrayValue};";
+                $toArrayLines[] = '        }';
             }
 
             $properties = implode("\n", $propertyDocLines);
             $propertiesCode = implode("\n", $propertyLines);
 
             $fromArray = implode("\n", $fromArrayLines);
+            $toArray = implode("\n", $toArrayLines);
 
             $uses = $imports ? implode("\n", array_keys($imports)) : '';
             $constants = $fieldConstants ? implode("\n", $fieldConstants) : '';
 
             $code = str_replace(
-                ['{{ namespace }}', '{{ uses }}', '{{ class }}', '{{ constants }}', '{{ properties }}', '{{ properties_code }}', '{{ from_array }}'],
-                [$namespace, $uses, $className, $constants, $properties, $propertiesCode, $fromArray],
+                ['{{ namespace }}', '{{ uses }}', '{{ class }}', '{{ constants }}', '{{ properties }}', '{{ properties_code }}', '{{ from_array }}', '{{ to_array }}'],
+                [$namespace, $uses, $className, $constants, $properties, $propertiesCode, $fromArray, $toArray],
                 $stub
             );
 
@@ -314,5 +322,53 @@ class TypesGenerator
         }
 
         return $base;
+    }
+
+    private function generateToArrayValue(
+        string $fieldName,
+        array $typeMapping,
+        array $scalarMap,
+        array $enumNames,
+        array $typeNames,
+        string $baseNamespace,
+        array $imports = []
+    ): string {
+        $base = $typeMapping['base'];
+        $isList = $typeMapping['isList'];
+
+        $valueExpr = "\$this->{$fieldName}";
+
+        // Получаем короткое имя класса из импортов
+        $shortClassName = $this->getShortClassName($base, $baseNamespace, $enumNames, $typeNames, $imports);
+
+        if ($isList) {
+            if (isset($scalarMap[$base])) {
+                return "{$valueExpr}";
+            }
+
+            if (isset($enumNames[$base])) {
+                return "{$valueExpr}";
+            }
+
+            if (isset($typeNames[$base])) {
+                return "array_map(fn(\$item) => \$item->toArray(), {$valueExpr})";
+            }
+
+            return "{$valueExpr}";
+        }
+
+        if (isset($scalarMap[$base])) {
+            return "{$valueExpr}";
+        }
+
+        if (isset($enumNames[$base])) {
+            return "{$valueExpr}";
+        }
+
+        if (isset($typeNames[$base])) {
+            return "\$this->{$fieldName}->toArray()";
+        }
+
+        return "{$valueExpr}";
     }
 }

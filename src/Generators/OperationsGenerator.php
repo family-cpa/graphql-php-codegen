@@ -303,39 +303,37 @@ class OperationsGenerator
             $typeClass = "'mixed'";
         }
 
-        $code = str_replace(
-            [
-                '{{ namespace }}',
-                '{{ uses }}',
-                '{{ class }}',
-                '{{ constructor }}',
-                '{{ operation_name }}',
-                '{{ args_signature }}',
-                '{{ field_name }}',
-                '{{ args_pass }}',
-                '{{ selection }}',
-                '{{ variables }}',
-                '{{ type_class }}',
-                '{{ graphql_return_type }}',
-                '{{ base_namespace }}',
-            ],
-            [
-                $namespace,
-                $uses,
-                $className,
-                rtrim($constructor, ','),
-                ucfirst($name),
-                $argsSignature,
-                $name,
-                $argsPass,
-                $selection,
-                rtrim($variables, ','),
-                $typeClass,
-                $returnType,
-                $baseNamespace,
-            ],
-            $stub
-        );
+            $code = str_replace(
+                [
+                    '{{ namespace }}',
+                    '{{ uses }}',
+                    '{{ class }}',
+                    '{{ constructor }}',
+                    '{{ operation_name }}',
+                    '{{ args_signature }}',
+                    '{{ field_name }}',
+                    '{{ args_pass }}',
+                    '{{ selection }}',
+                    '{{ variables }}',
+                    '{{ type_class }}',
+                    '{{ graphql_return_type }}',
+                ],
+                [
+                    $namespace,
+                    $uses,
+                    $className,
+                    rtrim($constructor, ','),
+                    ucfirst($name),
+                    $argsSignature,
+                    $name,
+                    $argsPass,
+                    $selection,
+                    rtrim($variables, ','),
+                    $typeClass,
+                    $returnType,
+                ],
+                $stub
+            );
 
         $path = $targetDir.'/'.$className.'.php';
         $this->files->writeIfChanged($path, $code);
