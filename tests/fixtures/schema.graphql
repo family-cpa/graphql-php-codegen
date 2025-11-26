@@ -18,6 +18,7 @@ type User @key(fields: "id", resolvable: false) {
     email: String!
     picture: String
     role: Role!
+    friends: [User!]
 }
 
 type Query {

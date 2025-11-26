@@ -39,8 +39,10 @@ class {{ class }} extends Operation
 
     public function variables(): array
     {
-        return array_filter([
+        $vars = array_filter([
 {{ variables }}
         ], fn($v) => $v !== null);
+        
+        return $this->filterEmptyObjects($vars);
     }
 }

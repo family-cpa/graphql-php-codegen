@@ -56,6 +56,9 @@ class TypesGenerator
             $imports = [];
             $scalarMap = $this->mapper->scalarMap();
 
+            // Добавляем поле _kind в начало toArray
+            $toArrayLines[] = "        \$result['_kind'] = '{$className}';";
+
             foreach ($fields as $field) {
                 $fieldName = $field['name'] ?? '';
                 $fieldType = $field['type'] ?? '';

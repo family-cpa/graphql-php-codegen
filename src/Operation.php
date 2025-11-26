@@ -40,4 +40,37 @@ abstract class Operation
     {
         return $this->customSelectionSet !== null;
     }
+
+    /**
+     * Рекурсивно удаляет пустые объекты (ассоциативные массивы) из структуры данных
+     * Пустые списки (индексированные массивы) также удаляются
+     * 
+     * @param mixed $data
+     * @return mixed
+     */
+    protected function filterEmptyObjects(mixed $data): mixed
+    {
+        if (! is_array($data)) {
+            return $data;
+        }
+
+        $result = [];
+        foreach ($data as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+
+            if (is_array($value)) {
+                $filtered = $this->filterEmptyObjects($value);
+                // Пропускаем пустые массивы (и объекты, и списки)
+                if (! empty($filtered)) {
+                    $result[$key] = $filtered;
+                }
+            } else {
+                $result[$key] = $value;
+            }
+        }
+
+        return $result;
+    }
 }

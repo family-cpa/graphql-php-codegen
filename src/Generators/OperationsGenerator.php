@@ -229,10 +229,8 @@ class OperationsGenerator
             $selectionSet = $this->buildSelectionSet($base, $typeMap, $typeNames, $scalarMap, 1);
             if ($selectionSet) {
                 $selection = ' { '.$selectionSet.' }';
-            } else {
-                // Если нет полей, все равно нужны фигурные скобки для валидного GraphQL
-                $selection = ' {}';
             }
+            // Если нет полей - не добавляем пустые скобки (невалидно в GraphQL)
         }
 
         // Собираем импорты для возвращаемого типа и аргументов
@@ -397,10 +395,8 @@ class OperationsGenerator
                 $nestedSelection = $this->buildSelectionSet($fieldBase, $typeMap, $typeNames, $scalarMap, $depth + 1, $visited);
                 if ($nestedSelection) {
                     $fieldParts[] = $fieldName.' { '.$nestedSelection.' }';
-                } else {
-                    // Если вложенных полей нет, но это объект - все равно добавляем поле с пустыми скобками
-                    $fieldParts[] = $fieldName.' {}';
                 }
+                // Если вложенных полей нет - не добавляем поле (пустые объекты невалидны в GraphQL)
             }
             // Неизвестный тип - просто имя поля
             else {

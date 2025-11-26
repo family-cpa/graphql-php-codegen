@@ -17,26 +17,11 @@ class GraphQLClient
 
     protected ?string $baseNamespace = null;
 
-    public function __construct(string $endpoint, array $headers = [], ?string $baseNamespace = null)
+    public function __construct(string $endpoint, array $headers = [])
     {
         $this->endpoint = $endpoint;
         $this->headers = $headers;
         $this->typeMapper = new TypeMapper;
-        $this->baseNamespace = $baseNamespace ?? $this->detectBaseNamespace();
-    }
-
-    protected function detectBaseNamespace(): ?string
-    {
-        $clientClass = static::class;
-        $reflection = new \ReflectionClass($clientClass);
-        $namespace = $reflection->getNamespaceName();
-
-        // Если клиент в корневом namespace, возвращаем null
-        if (empty($namespace)) {
-            return null;
-        }
-
-        return $namespace;
     }
 
     /**
