@@ -179,10 +179,33 @@ class GraphQLClient
         $fileIndex = 0;
         $multipartData = [];
         
+        // Согласно спецификации, порядок должен быть: operations, map, файлы
+        // 1. Добавляем operations (первая часть)
+        $operations = [
+            'query' => $operation->document(),
+            'variables' => $variablesForJson,
+        ];
+        
+        $multipartData[] = [
+            'name' => 'operations',
+            'contents' => json_encode($operations, JSON_THROW_ON_ERROR),
+        ];
+        
+        // 2. Собираем маппинг файлов
         foreach ($uploadFiles as $variablePath => $uploadFile) {
             $fileMap[(string) $fileIndex] = [$variablePath];
-            
-            // Добавляем файл в multipart данные
+            $fileIndex++;
+        }
+        
+        // 3. Добавляем map (вторая часть)
+        $multipartData[] = [
+            'name' => 'map',
+            'contents' => json_encode($fileMap, JSON_THROW_ON_ERROR),
+        ];
+        
+        // 4. Добавляем файлы (третья часть и далее)
+        $fileIndex = 0;
+        foreach ($uploadFiles as $uploadFile) {
             $multipartData[] = [
                 'name' => (string) $fileIndex,
                 'contents' => $uploadFile->getContents(),
@@ -194,22 +217,6 @@ class GraphQLClient
             
             $fileIndex++;
         }
-        
-        // Добавляем operations и map
-        $operations = [
-            'query' => $operation->document(),
-            'variables' => $variablesForJson,
-        ];
-        
-        $multipartData[] = [
-            'name' => 'operations',
-            'contents' => json_encode($operations, JSON_THROW_ON_ERROR),
-        ];
-        
-        $multipartData[] = [
-            'name' => 'map',
-            'contents' => json_encode($fileMap, JSON_THROW_ON_ERROR),
-        ];
         
         // Отправляем multipart запрос
         $response = Http::withHeaders(array_merge(
