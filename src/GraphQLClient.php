@@ -90,6 +90,7 @@ class GraphQLClient
                 'int' => (int) $data,
                 'float' => (float) $data,
                 'bool' => (bool) $data,
+                'mixed' => $data,
                 default => (string) $data,
             };
         }

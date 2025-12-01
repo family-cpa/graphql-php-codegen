@@ -13,6 +13,7 @@ class TypeMapper
         'Boolean' => 'bool',
         'Time' => 'string',
         'Any' => 'mixed',
+        'JSON' => 'mixed',
         'Upload' => '\\GraphQLCodegen\\UploadFile',
         'Cursor' => 'string',
     ];
