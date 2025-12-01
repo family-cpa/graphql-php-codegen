@@ -180,13 +180,16 @@ class GraphQLClient
         $multipartData = [];
         
         // Согласно спецификации, порядок должен быть: operations, map, файлы
-        // 1. Подготавливаем operations
+        // 1. Добавляем operations (первая часть)
         $operations = [
             'query' => $operation->document(),
             'variables' => $variablesForJson,
         ];
         
-        $operationsJson = json_encode($operations, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $multipartData[] = [
+            'name' => 'operations',
+            'contents' => json_encode($operations, JSON_THROW_ON_ERROR),
+        ];
         
         // 2. Собираем маппинг файлов
         foreach ($uploadFiles as $variablePath => $uploadFile) {
@@ -194,26 +197,13 @@ class GraphQLClient
             $fileIndex++;
         }
         
-        $mapJson = json_encode($fileMap, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
-        
-        // Формируем multipart данные
-        // Важно: порядок должен быть operations, map, файлы
-        $multipartData = [];
-        
-        // 1. Добавляем operations (первая часть) - текстовое поле с JSON
-        // Laravel Http автоматически установит правильный Content-Type для текстовых полей
-        $multipartData[] = [
-            'name' => 'operations',
-            'contents' => $operationsJson,
-        ];
-        
-        // 2. Добавляем map (вторая часть) - текстовое поле с JSON
+        // 3. Добавляем map (вторая часть)
         $multipartData[] = [
             'name' => 'map',
-            'contents' => $mapJson,
+            'contents' => json_encode($fileMap, JSON_THROW_ON_ERROR),
         ];
         
-        // 3. Добавляем файлы (третья часть и далее)
+        // 4. Добавляем файлы (третья часть и далее)
         $fileIndex = 0;
         foreach ($uploadFiles as $uploadFile) {
             $multipartData[] = [
