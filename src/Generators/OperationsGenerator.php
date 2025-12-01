@@ -153,6 +153,12 @@ class OperationsGenerator
 
             $ctorLines[] = "public {$hint} \${$argName}{$default},";
 
+            // Если это Upload скаляр, не добавляем в variables (будет обработан отдельно в multipart)
+            if ($argBase === 'Upload') {
+                // Upload файлы обрабатываются отдельно в GraphQLClient
+                continue;
+            }
+
             // Если это Input объект, вызываем toArray()
             $varValue = "\$this->{$argName}";
             if (isset($typeNames[$argBase]) && $typeNames[$argBase] === 'input') {
@@ -255,6 +261,15 @@ class OperationsGenerator
 
             $argTypeMapping = $this->mapper->map($argType);
             $argBase = $argTypeMapping['base'];
+
+            // Добавляем импорт для Upload скаляра
+            if ($argBase === 'Upload') {
+                $import = 'use GraphQLCodegen\\UploadFile;';
+                if (! in_array($import, $imports, true)) {
+                    $imports[] = $import;
+                }
+                continue;
+            }
 
             // Пропускаем скалярные типы
             if (isset($scalarMap[$argBase])) {

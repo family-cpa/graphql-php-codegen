@@ -31,5 +31,5 @@ type Query {
 }
 
 type Mutation {
-    createUser(input: CreateUserInput!): User
+    createUser(input: CreateUserInput!, file Upload): User
 }
