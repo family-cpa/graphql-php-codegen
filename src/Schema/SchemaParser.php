@@ -19,6 +19,24 @@ class SchemaParser
             throw new \RuntimeException("Failed to read schema file: {$schemaPath}");
         }
 
+        // Detect and convert UTF-16 encoding to UTF-8
+        if (substr($content, 0, 2) === "\xFF\xFE") {
+            // UTF-16 LE BOM
+            $content = mb_convert_encoding($content, 'UTF-8', 'UTF-16LE');
+        } elseif (substr($content, 0, 2) === "\xFE\xFF") {
+            // UTF-16 BE BOM
+            $content = mb_convert_encoding($content, 'UTF-8', 'UTF-16BE');
+        } elseif (substr($content, 0, 3) === "\xEF\xBB\xBF") {
+            // UTF-8 BOM - just remove it
+            $content = substr($content, 3);
+        } else {
+            // Check if file is UTF-16 without BOM (has null bytes between ASCII chars)
+            // This is a heuristic: if we see pattern of null bytes, likely UTF-16 LE
+            if (strlen($content) > 10 && $content[1] === "\x00" && $content[3] === "\x00") {
+                $content = mb_convert_encoding($content, 'UTF-8', 'UTF-16LE');
+            }
+        }
+
         $this->schema = $content;
         $this->mapper = new TypeMapper;
 

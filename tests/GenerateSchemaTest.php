@@ -17,7 +17,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_generator_runs(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
 
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
@@ -27,7 +27,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_types_are_generated(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -46,7 +46,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_enums_are_generated(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -61,7 +61,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_inputs_are_generated(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -80,7 +80,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_queries_are_generated(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -109,7 +109,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_mutations_are_generated(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -126,7 +126,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_client_is_generated(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -141,7 +141,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_operation_methods_work(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -159,7 +159,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_type_from_array_works(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -185,7 +185,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_type_from_array_with_null(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -205,7 +205,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_input_to_array_works(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -228,7 +228,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_input_to_array_filters_nulls(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -248,7 +248,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_list_type_operation(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -261,7 +261,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_mutation_with_input(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -297,7 +297,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_type_from_array_with_list(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -331,7 +331,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_enum_values(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -346,7 +346,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_query_with_nullable_argument(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
@@ -364,7 +364,7 @@ class GenerateSchemaTest extends TestCase
 
     public function test_generated_code_is_valid(): void
     {
-        $schema = __DIR__.'/fixtures/schema.graphql';
+        $schema = __DIR__.'/fixtures/schema_old.graphql';
         $cli = new App;
         $cli->generate($schema, $this->outputDir);
 
