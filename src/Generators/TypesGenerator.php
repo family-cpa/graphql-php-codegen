@@ -198,6 +198,11 @@ class TypesGenerator
             if (isset($scalarMap[$base])) {
                 $phpType = $scalarMap[$base];
 
+                if ($phpType === 'mixed') {
+                    // Для mixed каст недопустим — возвращаем как есть
+                    return "{$nullCheck}{$valueExprWrapped} ?? []";
+                }
+
                 return "{$nullCheck}array_map(fn(\$value) => ({$phpType}) \$value, {$valueExprWrapped} ?? [])";
             }
 
@@ -214,6 +219,11 @@ class TypesGenerator
 
         if (isset($scalarMap[$base])) {
             $phpType = $scalarMap[$base];
+
+            if ($phpType === 'mixed') {
+                // Для mixed каст недопустим — возвращаем как есть
+                return "{$nullCheck}{$valueExprWrapped}";
+            }
 
             return "{$nullCheck}({$phpType}) {$valueExprWrapped}";
         }
